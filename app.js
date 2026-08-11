@@ -15,9 +15,13 @@ const actListEl = document.getElementById('act-list');
 let dayRadioEls = [];
 const searchInputEl = document.getElementById('search-input');
 const favToggleBtn = document.getElementById('fav-toggle');
+const themeToggleBtn = document.getElementById('theme-toggle');
+
+const THEME_KEY = 'gm2026_theme';
 
 // --- 3. INIT & DATA FETCH ---
 document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
   initServiceWorker();
   fetchScheduleData();
   setupEventListeners();
@@ -146,6 +150,15 @@ function setupEventListeners() {
     favToggleBtn.innerText = showFavoritesOnly ? '★ Showing Starred' : '☆ Starred Only';
     renderSchedule();
   });
+
+  // Theme toggle
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-bs-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+    });
+  }
 }
 
 function populateStageDropdown() {
@@ -180,6 +193,23 @@ function populateStageDropdown() {
 function escapeHtml(str) {
   const s = String(str == null ? '' : str);
   return s.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+}
+
+// --- THEME HANDLING ---
+function applyTheme(theme) {
+  const t = theme === 'light' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-bs-theme', t);
+  try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+  if (themeToggleBtn) {
+    themeToggleBtn.innerText = t === 'dark' ? '🌙' : '☀️';
+    themeToggleBtn.setAttribute('aria-pressed', t === 'light' ? 'true' : 'false');
+  }
+}
+
+function initTheme() {
+  const saved = localStorage.getItem(THEME_KEY);
+  const initial = (saved === 'light' || saved === 'dark') ? saved : 'light';
+  applyTheme(initial);
 }
 
 // --- 7. SERVICE WORKER REGISTRATION (OFFLINE SUPPORT) ---

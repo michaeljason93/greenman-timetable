@@ -4,6 +4,7 @@
   --muted: #9aa4b2;
   --accent: #2dd4bf;
   --success: #16a34a;
+  --text: #e6eef6;
 }
 
 /* Basic page layout */
@@ -11,7 +12,7 @@ body{
   margin:0;
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   background: var(--bg);
-  color: #e6eef6;
+  color: var(--text);
 }
 
 .navbar{ background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent); }
@@ -38,6 +39,25 @@ body{
   border-radius:6px;
 }
 
+/* Light theme overrides (uses same variable names for easier switching) */
+[data-bs-theme="light"]{
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --muted: #6b7280;
+  --accent: #0ea5a4;
+  --success: #16a34a;
+  --text: #0f1720;
+}
+
+[data-bs-theme="light"] .act-card{
+  background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01));
+  border:1px solid rgba(0,0,0,0.06);
+}
+
+[data-bs-theme="light"] .time-badge{ background: rgba(0,0,0,0.03); }
+
+[data-bs-theme="light"] .fav-btn{ color:var(--muted); }
+
 .act-details{ flex:1; }
 .act-name{ margin:0; font-size:1rem; }
 .stage-name{ color:var(--muted); font-size:0.85rem; }
@@ -62,3 +82,4 @@ body{
   .time-badge{ min-width:70px; font-size:0.75rem; }
   .act-name{ font-size:0.95rem; }
 }
+

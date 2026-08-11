@@ -11,9 +11,8 @@ let favorites = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
 
 // --- 2. DOM ELEMENTS ---
 const actListEl = document.getElementById('act-list');
-// Day selector is implemented as a group of radio inputs (see index.html)
-const dayRadioEls = Array.from(document.querySelectorAll('input[name="day-radio"]'));
-const stageGroupEl = document.getElementById('stage-group');
+
+let dayRadioEls = [];
 const searchInputEl = document.getElementById('search-input');
 const favToggleBtn = document.getElementById('fav-toggle');
 
@@ -122,6 +121,9 @@ function setupEventListeners() {
   // initialize currentDay from checked radio
   const checked = document.querySelector('input[name="day-radio"]:checked');
   if (checked) currentDay = checked.value;
+
+  // Re-query day radio elements now that DOM is ready
+  dayRadioEls = Array.from(document.querySelectorAll('input[name="day-radio"]'));
   dayRadioEls.forEach(radio => radio.addEventListener('change', (e) => {
     if (e.target.checked) {
       currentDay = e.target.value;
@@ -160,6 +162,8 @@ function populateStageDropdown() {
     `;
   }).join('');
 
+  const stageGroupEl = document.getElementById('stage-group');
+  if (!stageGroupEl) return;
   stageGroupEl.innerHTML = html;
 
   // Attach listeners to the newly created radios

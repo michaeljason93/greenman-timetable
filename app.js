@@ -83,13 +83,15 @@ function parseTimeForSort(timeStr) {
     const isFav = favorites.has(actId);
 
     return `
-      <div class="act-card ${isFav ? 'is-favorite' : ''}">
-        <div class="time-badge">${act.start} - ${act.end}</div>
-        <div class="act-details">
-          <h3 class="act-name">${escapeHtml(act.act)}</h3>
-          <span class="stage-name">${escapeHtml(act.stage)}</span>
+      <div class="list-group-item d-flex align-items-center gap-3 ${isFav ? 'border border-3 border-warning' : ''}">
+        <div class="me-2">
+          <span class="badge bg-info text-dark fw-semibold py-2 px-3">${act.start} - ${act.end}</span>
         </div>
-        <button class="fav-btn" onclick="toggleFavorite('${actId}')" aria-label="Favorite">
+        <div class="flex-grow-1">
+          <div class="h6 mb-0">${escapeHtml(act.act)}</div>
+          <div class="small text-muted">${escapeHtml(act.stage)}</div>
+        </div>
+        <button class="btn btn-link btn-sm fav-btn" onclick="toggleFavorite('${actId}')" aria-label="Favorite">
           ${isFav ? '★' : '☆'}
         </button>
       </div>
@@ -163,23 +165,32 @@ function setupEventListeners() {
 
 function populateStageDropdown() {
   const stages = ['All', ...new Set(allActs.map(a => a.stage))];
+  const others = stages.slice(1);
+  const idAll = 'stage-all';
+  const checkedAll = currentStage === 'All' ? 'checked' : '';
 
-  // Create radio buttons (Bootstrap btn-check pattern)
-  const html = stages.map(stage => {
+  let html = `
+    <input type="radio" class="btn-check" name="stage-radio" id="${idAll}" value="All" ${checkedAll}>
+    <label class="btn btn-outline-primary btn-sm w-100 mb-2 text-start" for="${idAll}">All</label>
+    <div class="d-flex flex-wrap gap-2 w-100">
+  `;
+
+  others.forEach(stage => {
     const slug = String(stage).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
     const id = `stage-${slug}`;
     const checked = stage === currentStage ? 'checked' : '';
-    return `
+    html += `
       <input type="radio" class="btn-check" name="stage-radio" id="${id}" value="${stage}" ${checked}>
-      <label class="btn btn-outline-primary btn-sm" for="${id}">${stage}</label>
+      <label class="btn btn-outline-primary btn-sm flex-fill text-truncate" for="${id}">${stage}</label>
     `;
-  }).join('');
+  });
+
+  html += `</div>`;
 
   const stageGroupEl = document.getElementById('stage-group');
   if (!stageGroupEl) return;
   stageGroupEl.innerHTML = html;
 
-  // Attach listeners to the newly created radios
   const stageRadioEls = Array.from(document.querySelectorAll('input[name="stage-radio"]'));
   stageRadioEls.forEach(radio => radio.addEventListener('change', (e) => {
     if (e.target.checked) {

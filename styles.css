@@ -1,0 +1,64 @@
+:root{
+  --bg: #0f1720;
+  --card: #0b1220;
+  --muted: #9aa4b2;
+  --accent: #2dd4bf;
+  --success: #16a34a;
+}
+
+/* Basic page layout */
+body{
+  margin:0;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: var(--bg);
+  color: #e6eef6;
+}
+
+.navbar{ background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent); }
+.container{ max-width:980px; }
+
+/* Act card styles */
+.act-card{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.03);
+}
+
+.time-badge{
+  min-width:90px;
+  text-align:center;
+  font-size:0.85rem;
+  color:var(--muted);
+  background:rgba(255,255,255,0.02);
+  padding:6px 8px;
+  border-radius:6px;
+}
+
+.act-details{ flex:1; }
+.act-name{ margin:0; font-size:1rem; }
+.stage-name{ color:var(--muted); font-size:0.85rem; }
+
+.fav-btn{
+  background:transparent;
+  border:0;
+  font-size:1.25rem;
+  cursor:pointer;
+  color:var(--muted);
+}
+.fav-btn:focus{ outline:2px solid rgba(45,212,191,0.15); border-radius:6px; }
+
+.is-favorite{ box-shadow: 0 0 0 2px rgba(45,212,191,0.06) inset; }
+
+.empty-state{ padding:40px; text-align:center; color:var(--muted); }
+
+.spinner-border{ width:2rem; height:2rem; border-width:0.2rem; }
+
+/* Small responsive tweaks */
+@media (max-width:640px){
+  .time-badge{ min-width:70px; font-size:0.75rem; }
+  .act-name{ font-size:0.95rem; }
+}

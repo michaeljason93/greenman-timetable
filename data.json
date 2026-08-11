@@ -1,0 +1,242 @@
+[
+  {
+    "id": "thu-far-out-1645-heartworms",
+    "day": "Thursday",
+    "stage": "Far Out",
+    "act": "Heartworms",
+    "start": "16:45",
+    "end": "17:30"
+  },
+  {
+    "id": "thu-far-out-1800-w-h-lung",
+    "day": "Thursday",
+    "stage": "Far Out",
+    "act": "W. H. Lung",
+    "start": "18:00",
+    "end": "18:45"
+  },
+  {
+    "id": "thu-far-out-1930-adwaith",
+    "day": "Thursday",
+    "stage": "Far Out",
+    "act": "Adwaith",
+    "start": "19:30",
+    "end": "20:15"
+  },
+  {
+    "id": "thu-far-out-2100-gurriers",
+    "day": "Thursday",
+    "stage": "Far Out",
+    "act": "Gurriers",
+    "start": "21:00",
+    "end": "21:45"
+  },
+  {
+    "id": "thu-far-out-2230-kneecap",
+    "day": "Thursday",
+    "stage": "Far Out",
+    "act": "Kneecap",
+    "start": "22:30",
+    "end": "23:45"
+  },
+  {
+    "id": "thu-far-out-0015-factory-floor",
+    "day": "Thursday",
+    "stage": "Far Out",
+    "act": "Factory Floor",
+    "start": "00:15",
+    "end": "01:30"
+  },
+  {
+    "id": "thu-walled-garden-1715-peiriant",
+    "day": "Thursday",
+    "stage": "Walled Garden",
+    "act": "Peiriant",
+    "start": "17:15",
+    "end": "18:00"
+  },
+  {
+    "id": "thu-walled-garden-1830-nancy-williams",
+    "day": "Thursday",
+    "stage": "Walled Garden",
+    "act": "Nancy Williams",
+    "start": "18:30",
+    "end": "19:15"
+  },
+  {
+    "id": "thu-walled-garden-1945-midding",
+    "day": "Thursday",
+    "stage": "Walled Garden",
+    "act": "Midding",
+    "start": "19:45",
+    "end": "20:30"
+  },
+  {
+    "id": "thu-walled-garden-2115-tristwch-y-fenywod",
+    "day": "Thursday",
+    "stage": "Walled Garden",
+    "act": "Tristwch Y Fenywod",
+    "start": "21:15",
+    "end": "22:15"
+  },
+  {
+    "id": "thu-walled-garden-2245-georgia-ruth",
+    "day": "Thursday",
+    "stage": "Walled Garden",
+    "act": "Georgia Ruth",
+    "start": "22:45",
+    "end": "23:45"
+  },
+  {
+    "id": "thu-round-the-twist-2000-heavenly-jukebox-b2b-james-endeacott",
+    "day": "Thursday",
+    "stage": "Round The Twist",
+    "act": "Heavenly Jukebox B2B James Endeacott",
+    "start": "20:00",
+    "end": "21:30"
+  },
+  {
+    "id": "thu-round-the-twist-2130-numero-group",
+    "day": "Thursday",
+    "stage": "Round The Twist",
+    "act": "Numero Group",
+    "start": "21:30",
+    "end": "22:30"
+  },
+  {
+    "id": "thu-round-the-twist-2230-pet-deaths-disco-b2b-bella-unwin",
+    "day": "Thursday",
+    "stage": "Round The Twist",
+    "act": "Pet Deaths Disco B2B Bella Unwin",
+    "start": "22:30",
+    "end": "23:30"
+  },
+  {
+    "id": "thu-round-the-twist-2330-convulse-djs",
+    "day": "Thursday",
+    "stage": "Round The Twist",
+    "act": "Convulse! DJs",
+    "start": "23:30",
+    "end": "00:30"
+  },
+  {
+    "id": "thu-round-the-twist-0030-the-social-soundsystem",
+    "day": "Thursday",
+    "stage": "Round The Twist",
+    "act": "The Social Soundsystem",
+    "start": "00:30",
+    "end": "01:30"
+  },
+  {
+    "id": "thu-round-the-twist-0130-ros-atkins-rave-machine",
+    "day": "Thursday",
+    "stage": "Round The Twist",
+    "act": "Ros Atkins' Rave Machine",
+    "start": "01:30",
+    "end": "03:00"
+  },
+  {
+    "id": "thu-chai-wallahs-1500-diplomats-of-sound-djs",
+    "day": "Thursday",
+    "stage": "Chai Wallahs",
+    "act": "Diplomats of Sound DJs",
+    "start": "15:00",
+    "end": "17:00"
+  },
+  {
+    "id": "thu-chai-wallahs-1700-gringo-ska",
+    "day": "Thursday",
+    "stage": "Chai Wallahs",
+    "act": "Gringo Ska",
+    "start": "17:00",
+    "end": "18:00"
+  },
+  {
+    "id": "thu-chai-wallahs-1830-the-wran",
+    "day": "Thursday",
+    "stage": "Chai Wallahs",
+    "act": "The Wran",
+    "start": "18:30",
+    "end": "19:30"
+  },
+  {
+    "id": "thu-chai-wallahs-2000-madly",
+    "day": "Thursday",
+    "stage": "Chai Wallahs",
+    "act": "Madly",
+    "start": "20:00",
+    "end": "21:00"
+  },
+  {
+    "id": "thu-chai-wallahs-2130-shes-got-brass",
+    "day": "Thursday",
+    "stage": "Chai Wallahs",
+    "act": "She's Got Brass",
+    "start": "21:30",
+    "end": "22:30"
+  },
+  {
+    "id": "thu-chai-wallahs-2300-stone-cold-hustle",
+    "day": "Thursday",
+    "stage": "Chai Wallahs",
+    "act": "Stone Cold Hustle",
+    "start": "23:00",
+    "end": "00:00"
+  },
+  {
+    "id": "thu-chai-wallahs-0015-the-allergies-dj",
+    "day": "Thursday",
+    "stage": "Chai Wallahs",
+    "act": "The Allergies (DJ)",
+    "start": "00:15",
+    "end": "02:00"
+  },
+  {
+    "id": "thu-cinedrome-1400-nt-live-dr-strangelove",
+    "day": "Thursday",
+    "stage": "Cinedrome",
+    "act": "NT Live: Dr Strangelove",
+    "start": "14:00",
+    "end": "16:00"
+  },
+  {
+    "id": "thu-cinedrome-1630-dawn-of-impressionism",
+    "day": "Thursday",
+    "stage": "Cinedrome",
+    "act": "Dawn of Impressionism",
+    "start": "16:30",
+    "end": "18:00"
+  },
+  {
+    "id": "thu-cinedrome-1900-tornado-introduced-by-john-mclean",
+    "day": "Thursday",
+    "stage": "Cinedrome",
+    "act": "Tornado Introduced by John McLean",
+    "start": "19:00",
+    "end": "21:00"
+  },
+  {
+    "id": "thu-cinedrome-2100-still-pushing-pineapples",
+    "day": "Thursday",
+    "stage": "Cinedrome",
+    "act": "Still Pushing Pineapples",
+    "start": "21:00",
+    "end": "22:45"
+  },
+  {
+    "id": "thu-cinedrome-2245-sister-midnight",
+    "day": "Thursday",
+    "stage": "Cinedrome",
+    "act": "Sister Midnight",
+    "start": "22:45",
+    "end": "00:30"
+  },
+  {
+    "id": "thu-cinedrome-0030-human-traffic",
+    "day": "Thursday",
+    "stage": "Cinedrome",
+    "act": "Human Traffic",
+    "start": "00:30",
+    "end": "02:15"
+  }
+]

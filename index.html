@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Man 2026 Schedule</title>
+
+    <!-- PWA & Web App Meta Tags -->
+    <meta name="theme-color" content="#121212">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Bootstrap 5.3 CSS CDN -->
+    <link href="/vendors/bootstrap.min.css" rel="stylesheet" >
+
+    <!-- Custom Stylesheet Override -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-body-tertiary text-body pb-5">
+
+    <!-- HEADER -->
+    <header class="navbar bg-body border-bottom sticky-top shadow-sm px-3 py-2">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <span class="navbar-brand fw-bold mb-0 h1 fs-4 text-success">
+                🏕️ GM '26
+            </span>
+            <button id="fav-toggle" class="btn btn-outline-warning btn-sm fw-semibold">
+                ☆ Starred Only
+            </button>
+        </div>
+    </header>
+
+    <!-- CONTROLS & FILTERS -->
+    <div class="container my-3">
+        <div class="card border-0 shadow-sm p-3 bg-body">
+
+            <!-- Day Selector (Radio Tabs) -->
+            <div class="row g-2 mb-3">
+                <div class="col-12">
+                    <div class="btn-group w-100" role="group" aria-label="Day Selector">
+                        <input type="radio" class="btn-check" name="day-radio" id="day-thu" value="Thursday" checked>
+                        <label class="btn btn-outline-primary btn-sm" for="day-thu">Thu</label>
+
+                        <input type="radio" class="btn-check" name="day-radio" id="day-fri" value="Friday">
+                        <label class="btn btn-outline-primary btn-sm" for="day-fri">Fri</label>
+
+                        <input type="radio" class="btn-check" name="day-radio" id="day-sat" value="Saturday">
+                        <label class="btn btn-outline-primary btn-sm" for="day-sat">Sat</label>
+
+                        <input type="radio" class="btn-check" name="day-radio" id="day-sun" value="Sunday">
+                        <label class="btn btn-outline-primary btn-sm" for="day-sun">Sun</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage & Search Inputs -->
+            <div class="row g-2">
+                <div class="col-6">
+                    <select id="stage-filter" class="form-select form-select-sm" aria-label="Select Stage">
+                        <option value="All" selected>All Stages</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <input type="search" id="search-input" class="form-control form-control-sm" placeholder="Search artist...">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SCHEDULE LIST CONTAINER -->
+    <main class="container">
+        <div id="act-list" class="d-flex flex-column gap-2">
+            <!-- JavaScript will dynamically render act cards here -->
+            <div class="text-center py-5 text-muted">
+                <div class="spinner-border spinner-border-sm mb-2" role="status"></div>
+                <p class="small">Loading schedule...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap 5.3 JS Bundle CDN (Includes Popper) -->
+    <script src="/vendors/bootstrap.bundle.min.js" ></script>
+
+    <!-- Custom Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>

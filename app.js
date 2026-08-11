@@ -13,7 +13,7 @@ let favorites = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
 const actListEl = document.getElementById('act-list');
 // Day selector is implemented as a group of radio inputs (see index.html)
 const dayRadioEls = Array.from(document.querySelectorAll('input[name="day-radio"]'));
-const stageFilterEl = document.getElementById('stage-filter');
+const stageGroupEl = document.getElementById('stage-group');
 const searchInputEl = document.getElementById('search-input');
 const favToggleBtn = document.getElementById('fav-toggle');
 
@@ -49,12 +49,30 @@ function renderSchedule() {
   });
 
   // Sort chronologically by start time
-  filtered.sort((a, b) => a.start.localeCompare(b.start));
+  // Sort taking into account post-midnight acts (treat times between 00:00-05:59 as belonging to the previous day)
+  filtered.sort((a, b) => {
+    const ta = parseTimeForSort(a.start);
+    const tb = parseTimeForSort(b.start);
+    return ta - tb;
+  });
 
   if (filtered.length === 0) {
     actListEl.innerHTML = `<div class="empty-state">No acts found for this selection.</div>`;
     return;
   }
+
+// Parse a HH:MM time string into minutes, but treat early-morning times as after 24:00
+function parseTimeForSort(timeStr) {
+  const m = /^\s*(\d{1,2}):(\d{2})\s*$/.exec(String(timeStr || ''));
+  if (!m) return 0;
+  let hh = parseInt(m[1], 10);
+  const mm = parseInt(m[2], 10);
+
+  // Consider acts starting before 06:00 as 'late-night' of the previous day
+  if (hh >= 0 && hh < 6) hh += 24;
+
+  return hh * 60 + mm;
+}
 
   // Render cards
   actListEl.innerHTML = filtered.map(act => {
@@ -111,11 +129,7 @@ function setupEventListeners() {
     }
   }));
 
-  // Stage Selector
-  stageFilterEl.addEventListener('change', (e) => {
-    currentStage = e.target.value;
-    renderSchedule();
-  });
+  // Stage radios are wired when populateStageDropdown runs (after data is loaded)
 
   // Search Input
   searchInputEl.addEventListener('input', (e) => {
@@ -134,9 +148,28 @@ function setupEventListeners() {
 
 function populateStageDropdown() {
   const stages = ['All', ...new Set(allActs.map(a => a.stage))];
-  stageFilterEl.innerHTML = stages.map(stage => 
-    `<option value="${stage}">${stage}</option>`
-  ).join('');
+
+  // Create radio buttons (Bootstrap btn-check pattern)
+  const html = stages.map(stage => {
+    const slug = String(stage).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+    const id = `stage-${slug}`;
+    const checked = stage === currentStage ? 'checked' : '';
+    return `
+      <input type="radio" class="btn-check" name="stage-radio" id="${id}" value="${stage}" ${checked}>
+      <label class="btn btn-outline-primary btn-sm" for="${id}">${stage}</label>
+    `;
+  }).join('');
+
+  stageGroupEl.innerHTML = html;
+
+  // Attach listeners to the newly created radios
+  const stageRadioEls = Array.from(document.querySelectorAll('input[name="stage-radio"]'));
+  stageRadioEls.forEach(radio => radio.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      currentStage = e.target.value;
+      renderSchedule();
+    }
+  }));
 }
 
 // Helper to escape special characters in HTML strings

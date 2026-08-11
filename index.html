@@ -55,9 +55,10 @@
             <!-- Stage & Search Inputs -->
             <div class="row g-2">
                 <div class="col-6">
-                    <select id="stage-filter" class="form-select form-select-sm" aria-label="Select Stage">
-                        <option value="All" selected>All Stages</option>
-                    </select>
+                    <!-- Stage selector rendered as radio buttons by app.js -->
+                    <div id="stage-group" class="btn-group w-100" role="group" aria-label="Stage Selector">
+                        <!-- populated dynamically -->
+                    </div>
                 </div>
                 <div class="col-6">
                     <input type="search" id="search-input" class="form-control form-control-sm" placeholder="Search artist...">

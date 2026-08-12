@@ -21,14 +21,14 @@
     <header class="navbar bg-body border-bottom sticky-top shadow-sm px-3 py-2">
         <div class="container-fluid d-flex justify-content-between align-items-center">
             <span class="navbar-brand fw-bold mb-0 h1 fs-4 text-success">
-                🏕️ GM '26
+                Green Man 2026
             </span>
             <div class="d-flex gap-2">
                 <button id="theme-toggle" class="btn btn-outline-secondary btn-sm fw-semibold" aria-label="Toggle theme">
                     🌙
                 </button>
                 <button id="fav-toggle" class="btn btn-outline-warning btn-sm fw-semibold">
-                    ☆ Starred Only
+                    ☆
                 </button>
             </div>
         </div>
@@ -39,34 +39,34 @@
         <div class="card border-0 shadow-sm p-3 bg-body">
 
             <!-- Day Selector (Radio Tabs) -->
-            <div class="row g-2 mb-3">
+            <div class="row g-2 mb-2">
                 <div class="col-12">
                     <div class="btn-group w-100" role="group" aria-label="Day Selector">
                         <input type="radio" class="btn-check" name="day-radio" id="day-thu" value="Thursday" checked>
-                        <label class="btn btn-outline-primary btn-sm" for="day-thu">Thu</label>
+                        <label class="btn btn-outline-success btn-sm" for="day-thu">Thu</label>
 
                         <input type="radio" class="btn-check" name="day-radio" id="day-fri" value="Friday">
-                        <label class="btn btn-outline-primary btn-sm" for="day-fri">Fri</label>
+                        <label class="btn btn-outline-success btn-sm" for="day-fri">Fri</label>
 
                         <input type="radio" class="btn-check" name="day-radio" id="day-sat" value="Saturday">
-                        <label class="btn btn-outline-primary btn-sm" for="day-sat">Sat</label>
+                        <label class="btn btn-outline-success btn-sm" for="day-sat">Sat</label>
 
                         <input type="radio" class="btn-check" name="day-radio" id="day-sun" value="Sunday">
-                        <label class="btn btn-outline-primary btn-sm" for="day-sun">Sun</label>
+                        <label class="btn btn-outline-success btn-sm" for="day-sun">Sun</label>
                     </div>
                 </div>
             </div>
 
             <!-- Stage & Search Inputs -->
-            <div class="row g-2">
-                <div class="col-6">
-                    <!-- Stage selector rendered as radio buttons by app.js -->
-                    <!-- Use Bootstrap utility classes for wrapping/scrolling instead of custom CSS -->
+            <div class="row g-2 pb-2">
+                <div class="col-12">
                     <div id="stage-group" class="d-flex flex-wrap gap-2 w-100 overflow-auto" role="group" aria-label="Stage Selector">
-                        <!-- populated dynamically -->
                     </div>
                 </div>
-                <div class="col-6">
+            </div>
+
+            <div class="row g-2">
+                <div class="col-12">
                     <input type="search" id="search-input" class="form-control form-control-sm" placeholder="Search artist...">
                 </div>
             </div>

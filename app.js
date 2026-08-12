@@ -83,15 +83,15 @@ function parseTimeForSort(timeStr) {
     const isFav = favorites.has(actId);
 
     return `
-      <div class="list-group-item d-flex align-items-center gap-3 ${isFav ? 'border border-3 border-warning' : ''}">
-        <div class="me-2">
-          <span class="badge bg-info text-dark fw-semibold py-2 px-3">${act.start} - ${act.end}</span>
+      <div class="list-group-item d-flex align-items-center p-1 gap-3 ${isFav ? 'border border-2 border-warning rounded' : ''}">
+        <div class="ms-1 me-2">
+          <span class="badge bg-secondary-subtle text-body fw-semibold py-2 px-3">${act.start} - ${act.end}</span>
         </div>
         <div class="flex-grow-1">
           <div class="h6 mb-0">${escapeHtml(act.act)}</div>
           <div class="small text-muted">${escapeHtml(act.stage)}</div>
         </div>
-        <button class="btn btn-link btn-sm fav-btn" onclick="toggleFavorite('${actId}')" aria-label="Favorite">
+        <button class="btn btn-link btn-sm fav-btn text-decoration-none ${isFav ? 'text-warning' : ''}" onclick="toggleFavorite('${actId}')" aria-label="Favorite">
           ${isFav ? '★' : '☆'}
         </button>
       </div>
@@ -149,7 +149,7 @@ function setupEventListeners() {
   favToggleBtn.addEventListener('click', () => {
     showFavoritesOnly = !showFavoritesOnly;
     favToggleBtn.classList.toggle('active', showFavoritesOnly);
-    favToggleBtn.innerText = showFavoritesOnly ? '★ Showing Starred' : '☆ Starred Only';
+    favToggleBtn.innerText = showFavoritesOnly ? '★' : '☆';
     renderSchedule();
   });
 
@@ -170,8 +170,8 @@ function populateStageDropdown() {
   const checkedAll = currentStage === 'All' ? 'checked' : '';
 
   let html = `
-    <input type="radio" class="btn-check" name="stage-radio" id="${idAll}" value="All" ${checkedAll}>
-    <label class="btn btn-outline-primary btn-sm w-100 mb-2 text-start" for="${idAll}">All</label>
+    <input type="radio" class="btn-check text-center" name="stage-radio" id="${idAll}" value="All" ${checkedAll}>
+    <label class="btn btn-outline-primary btn-sm w-100 mb-0 text-center" for="${idAll}">All</label>
     <div class="d-flex flex-wrap gap-2 w-100">
   `;
 
@@ -223,7 +223,6 @@ function initTheme() {
   applyTheme(initial);
 }
 
-// --- 7. SERVICE WORKER REGISTRATION (OFFLINE SUPPORT) ---
 function initServiceWorker() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js')

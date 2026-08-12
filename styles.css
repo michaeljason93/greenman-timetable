@@ -1,0 +1,57 @@
+:root{
+  --bg: #0f1720;
+  --card: #0b1220;
+  --muted: #9aa4b2;
+  --accent: #2dd4bf;
+  --success: #16a34a;
+  --text: #e6eef6;
+  --time-bg: #2dd4bf;
+  --time-color: #042026;
+}
+
+/* Basic page layout */
+body{
+  margin:0;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.navbar{ background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent); }
+.container{ max-width:980px; }
+
+/* act card and time badge styling handled via Bootstrap classes */
+
+/* Light theme overrides (uses same variable names for easier switching) */
+[data-bs-theme="light"]{
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --muted: #6b7280;
+  --accent: #0ea5a4;
+  --success: #16a34a;
+  --text: #0f1720;
+}
+
+[data-bs-theme="light"] .fav-btn{ color:var(--muted); }
+
+[data-bs-theme="light"] .fav-btn{ color:var(--muted); }
+
+.fav-btn{
+  background:transparent;
+  border:0;
+  font-size:1.25rem;
+  cursor:pointer;
+  color:var(--muted);
+}
+
+.fav-btn:focus{ outline:2px solid rgba(45,212,191,0.15); border-radius:6px; }
+
+.empty-state{ padding:40px; text-align:center; color:var(--muted); }
+
+.spinner-border{ width:2rem; height:2rem; border-width:0.2rem; }
+
+/* Small responsive tweaks */
+@media (max-width:640px){
+  .act-name{ font-size:0.95rem; }
+}
+

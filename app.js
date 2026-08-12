@@ -79,25 +79,25 @@ function renderSchedule() {
     const isSeen = seenActs.has(actId);
 
     return `
-      <div class="list-group-item d-flex align-items-center px-1 py-2 gap-2 overflow-hidden ${isFav ? 'border border-2 border-warning rounded' : 'border border-bottom rounded'}">
+      <div class="list-group-item d-flex align-items-center px-1 py-2 gap-2 overflow-hidden ${isSeen ? 'bg-success-subtle' : ''} ${isFav ? 'border border-2 border-warning rounded' : 'border border-bottom rounded'}">
         
         <div class="flex-shrink-0">
-          <span class="badge ${isSeen ? 'border border-2 border-success bg-secondary-subtle' : 'bg-secondary-subtle'} text-body fw-semibold py-2 px-2">${act.start} - ${act.end}</span>
+          <span class="badge ${isSeen ? 'border border-1 border-secondary rounded bg-secondary-subtle' : 'bg-secondary-subtle'} text-body fw-semibold py-2 px-2">${act.start} - ${act.end}</span>
         </div>
         
         <div class="flex-grow-1" style="min-width: 0;">
           <div class="h6 mb-0 text-wrap lh-sm fw-bold text-break" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-            ${escapeHtml(act.act)} ${isSeen ? '✅' : ''}
+            ${escapeHtml(act.act)}
           </div>
           <div class="small text-muted text-truncate mt-1">${escapeHtml(act.stage)}</div>
         </div>
         
         <div class="d-flex gap-1 align-items-center flex-shrink-0">
-          <button class="btn btn-link btn-sm p-1 text-decoration-none ${isSeen ? 'text-success fw-bold' : 'text-secondary'}" 
+          <button class="btn btn-link btn-sm p-1 text-decoration-none " 
                   onclick="toggleSeen('${actId}')" 
                   title="${isSeen ? 'Mark as Unseen' : 'Mark as Seen'}"
                   aria-label="Seen">
-            ${isSeen ? '👁️' : '👁️‍🗨️'}
+            ${isSeen ? '✅' : '🔲'}
           </button>
           
           <button class="btn btn-link btn-sm p-1 fav-btn text-decoration-none ${isFav ? 'text-warning fs-5' : 'text-secondary fs-5'}" 
@@ -205,7 +205,7 @@ function setupEventListeners() {
       showSeenOnly = !showSeenOnly;
 
       // Update icon
-      seenToggleBtn.innerText = showSeenOnly ? '👁️' : '👁️‍🗨️';
+      seenToggleBtn.innerText = showSeenOnly ? '✅' : '🔲';
 
       // Toggle styles: Outline (transparent bg) -> Solid Green
       if (showSeenOnly) {
@@ -230,15 +230,44 @@ function setupEventListeners() {
 }
 
 function populateStageDropdown() {
-  const stages = ['All', ...new Set(allActs.map(a => a.stage))];
+  // 1. Define your exact desired order (case-insensitive mapping)
+  const customOrder = [
+    'mountain stage',
+    'far out',
+    'walled garden',
+    'chai wallahs',
+    'round the twist',
+    'wishbone',
+    'cinedrome'
+  ];
+
+  // 2. Extract unique stages from dataset
+  const rawStages = [...new Set(allActs.map(a => a.stage))];
+
+  // 3. Sort stages using customOrder indexes
+  const sortedStages = rawStages.sort((a, b) => {
+    const indexA = customOrder.indexOf(String(a).toLowerCase().trim());
+    const indexB = customOrder.indexOf(String(b).toLowerCase().trim());
+
+    // If a stage isn't in customOrder list, place it at the end
+    const rankA = indexA === -1 ? 999 : indexA;
+    const rankB = indexB === -1 ? 999 : indexB;
+
+    return rankA - rankB;
+  });
+
+  // Ensure "All" is always first
+  const stages = ['All', ...sortedStages.filter(s => String(s).toLowerCase() !== 'all')];
   const others = stages.slice(1);
+
   const idAll = 'stage-all';
   const checkedAll = currentStage === 'All' ? 'checked' : '';
 
   let html = `
     <input type="radio" class="btn-check text-center" name="stage-radio" id="${idAll}" value="All" ${checkedAll}>
-    <label class="btn btn-outline-primary btn-sm w-100 mb-0 text-center" for="${idAll}">All</label>
-    <div class="d-flex flex-wrap gap-2 w-100">
+    <label class="btn btn-outline-primary btn-sm w-100 mb-2 text-center" for="${idAll}">All</label>
+    
+    <div class="d-grid gap-2 w-100" style="grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));">
   `;
 
   others.forEach(stage => {
@@ -247,7 +276,7 @@ function populateStageDropdown() {
     const checked = stage === currentStage ? 'checked' : '';
     html += `
       <input type="radio" class="btn-check" name="stage-radio" id="${id}" value="${stage}" ${checked}>
-      <label class="btn btn-outline-primary btn-sm flex-fill text-truncate" for="${id}">${stage}</label>
+      <label class="btn btn-outline-primary btn-sm text-truncate w-100" for="${id}">${stage}</label>
     `;
   });
 

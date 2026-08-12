@@ -71,21 +71,28 @@ function renderSchedule() {
   }
 
   // Render cards
+  // Render cards
+  // Render cards
   actListEl.innerHTML = filtered.map(act => {
     const actId = getActId(act);
     const isFav = favorites.has(actId);
     const isSeen = seenActs.has(actId);
 
     return `
-      <div class="list-group-item d-flex align-items-center p-2 gap-2 ${isFav ? 'border border-2 border-warning rounded' : ''}">
-        <div class="ms-1 me-1">
+      <div class="list-group-item d-flex align-items-center p-2 gap-2 overflow-hidden ${isFav ? 'border border-2 border-warning rounded' : 'border border-bottom rounded'}">
+        
+        <div class="flex-shrink-0">
           <span class="badge ${isSeen ? 'border border-2 border-success bg-secondary-subtle' : 'bg-secondary-subtle'} text-body fw-semibold py-2 px-2">${act.start} - ${act.end}</span>
         </div>
-        <div class="flex-grow-1 min-w-0">
-          <div class="h6 mb-0 text-truncate">${escapeHtml(act.act)} ${isSeen ? '✅' : ''}</div>
-          <div class="small text-muted text-truncate">${escapeHtml(act.stage)}</div>
+        
+        <div class="flex-grow-1" style="min-width: 0;">
+          <div class="h6 mb-0 text-wrap lh-sm fw-bold text-break" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            ${escapeHtml(act.act)} ${isSeen ? '✅' : ''}
+          </div>
+          <div class="small text-muted text-truncate mt-1">${escapeHtml(act.stage)}</div>
         </div>
-        <div class="d-flex gap-1 align-items-center">
+        
+        <div class="d-flex gap-1 align-items-center flex-shrink-0">
           <button class="btn btn-link btn-sm p-1 text-decoration-none ${isSeen ? 'text-success fw-bold' : 'text-secondary'}" 
                   onclick="toggleSeen('${actId}')" 
                   title="${isSeen ? 'Mark as Unseen' : 'Mark as Seen'}"
@@ -100,6 +107,7 @@ function renderSchedule() {
             ${isFav ? '★' : '☆'}
           </button>
         </div>
+
       </div>
     `;
   }).join('');

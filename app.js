@@ -79,7 +79,7 @@ function renderSchedule() {
     const isSeen = seenActs.has(actId);
 
     return `
-      <div class="list-group-item d-flex align-items-center p-2 gap-2 overflow-hidden ${isFav ? 'border border-2 border-warning rounded' : 'border border-bottom rounded'}">
+      <div class="list-group-item d-flex align-items-center px-1 py-2 gap-2 overflow-hidden ${isFav ? 'border border-2 border-warning rounded' : 'border border-bottom rounded'}">
         
         <div class="flex-shrink-0">
           <span class="badge ${isSeen ? 'border border-2 border-success bg-secondary-subtle' : 'bg-secondary-subtle'} text-body fw-semibold py-2 px-2">${act.start} - ${act.end}</span>
@@ -104,7 +104,7 @@ function renderSchedule() {
                   onclick="toggleFavorite('${actId}')" 
                   title="${isFav ? 'Remove Favorite' : 'Add Favorite'}"
                   aria-label="Favorite">
-            ${isFav ? '★' : '☆'}
+            ${isFav ? '★' : '⚝'}
           </button>
         </div>
 
@@ -179,25 +179,45 @@ function setupEventListeners() {
     });
   }
 
+// Favorites-Only Toggle Button
   // Favorites-Only Toggle Button
   if (favToggleBtn) {
     favToggleBtn.addEventListener('click', () => {
       showFavoritesOnly = !showFavoritesOnly;
-      favToggleBtn.classList.toggle('active', showFavoritesOnly);
-      favToggleBtn.innerText = showFavoritesOnly ? '★' : '☆';
+      
+      // Update icon
+      favToggleBtn.innerText = showFavoritesOnly ? '★' : '⚝';
+
+      // Toggle styles: Transparent Outline -> Solid Yellow
+      if (showFavoritesOnly) {
+        favToggleBtn.classList.add('btn-warning', 'text-dark');
+      } else {
+        favToggleBtn.classList.remove('btn-warning', 'text-dark');
+      }
+
       renderSchedule();
     });
   }
 
-  // Seen-Only Toggle Button (Optional UI Filter)
+  // Seen-Only Toggle Button
   if (seenToggleBtn) {
     seenToggleBtn.addEventListener('click', () => {
       showSeenOnly = !showSeenOnly;
-      seenToggleBtn.classList.toggle('active', showSeenOnly);
+
+      // Update icon
       seenToggleBtn.innerText = showSeenOnly ? '👁️' : '👁️‍🗨️';
+
+      // Toggle styles: Outline (transparent bg) -> Solid Green
+      if (showSeenOnly) {
+        seenToggleBtn.classList.add('btn-success', 'text-white');
+      } else {
+        seenToggleBtn.classList.remove('btn-success', 'text-white');
+      }
+
       renderSchedule();
     });
   }
+ 
 
   // Theme toggle
   if (themeToggleBtn) {

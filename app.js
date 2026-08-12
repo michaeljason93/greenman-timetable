@@ -1,6 +1,6 @@
 // --- 1. STATE MANAGEMENT ---
 let allActs = [];
-let currentDay = 'Thursday';
+let currentDay = getDefaultDate();
 let currentDate = 'All';
 let currentStage = 'All';
 let searchQuery = '';
@@ -24,6 +24,35 @@ const seenToggleBtn = document.getElementById('seen-toggle'); // Add this button
 const themeToggleBtn = document.getElementById('theme-toggle');
 
 const THEME_KEY = 'gm2026_theme';
+
+function getDefaultDate() {
+  const today = new Date();
+  
+  // Get year, month (0-indexed, so Aug is 7), and day of the month
+  const year = today.getFullYear();
+  const month = today.getMonth(); // 7 = August
+  const date = today.getDate();
+
+  // If we aren't in August 2026, default to 'All'
+  if (year !== 2026 || month !== 7) {
+    return 'All';
+  }
+
+  // Green Man 2026 Dates: Aug 20 (Thu) - Aug 23 (Sun)
+  switch (date) {
+    case 20:
+      return 'Thursday';
+    case 21:
+      return 'Friday';
+    case 22:
+      return 'Saturday';
+    case 23:
+      return 'Sunday';
+    default:
+      // Before Aug 20 or after Aug 23
+      return 'All';
+  }
+}
 
 // --- 3. INIT & DATA FETCH ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -184,14 +213,17 @@ window.toggleSeen = function(actId) {
 
 // --- 6. EVENT LISTENERS ---
 function setupEventListeners() {
-  // Day Selector (radio buttons)
-  const checked = document.querySelector('input[name="day-radio"]:checked');
-  if (checked) currentDate = checked.value;
+  // Check the radio button that matches our initial currentDate ('All', 'Thursday', etc.)
+  const activeRadio = document.querySelector(`input[name="day-radio"][value="${currentDate}"]`);
+  if (activeRadio) {
+    activeRadio.checked = true;
+  }
 
-  dayRadioEls = Array.from(document.querySelectorAll('input[name="day-radio"]'));
+  // Attach change listeners to all day radios
+  const dayRadioEls = Array.from(document.querySelectorAll('input[name="day-radio"]'));
   dayRadioEls.forEach(radio => radio.addEventListener('change', (e) => {
     if (e.target.checked) {
-      currentDate = e.target.value; 
+      currentDate = e.target.value;
       renderSchedule();
     }
   }));

@@ -1,6 +1,7 @@
 // --- 1. STATE MANAGEMENT ---
 let allActs = [];
 let currentDay = 'Thursday';
+let currentDate = 'All';
 let currentStage = 'All';
 let searchQuery = '';
 let showFavoritesOnly = false;
@@ -49,7 +50,9 @@ function renderSchedule() {
   // Filter dataset based on active UI states
   const filtered = allActs.filter(act => {
     const actId = getActId(act);
-    const matchesDay = act.day === currentDay;
+
+    const actDayVal = act.date || act.day; 
+    const matchesDay = currentDate === 'All' || actDayVal === currentDate;
     const matchesStage = currentStage === 'All' || act.stage === currentStage;
     const matchesSearch = act.act.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFav = !showFavoritesOnly || favorites.has(actId);
@@ -58,11 +61,28 @@ function renderSchedule() {
     return matchesDay && matchesStage && matchesSearch && matchesFav && matchesSeen;
   });
 
-  // Sort chronologically by start time taking late night into account
+  const dayOrder = {
+    'thursday': 1,
+    'friday': 2,
+    'saturday': 3,
+    'sunday': 4
+  };
+
   filtered.sort((a, b) => {
-    const ta = parseTimeForSort(a.start);
-    const tb = parseTimeForSort(b.start);
-    return ta - tb;
+    const dayA = String(a.date || a.day || '').trim().toLowerCase();
+    const dayB = String(b.date || b.day || '').trim().toLowerCase();
+
+    const rankA = dayOrder[dayA] || 999;
+    const rankB = dayOrder[dayB] || 999;
+
+    if (rankA !== rankB) {
+      return rankA - rankB;
+    }
+
+    const timeA = parseTimeForSort(a.start);
+    const timeB = parseTimeForSort(b.start);
+
+    return timeA - timeB;
   });
 
   if (filtered.length === 0) {
@@ -70,47 +90,52 @@ function renderSchedule() {
     return;
   }
 
-  // Render cards
-  // Render cards
-  // Render cards
   actListEl.innerHTML = filtered.map(act => {
-    const actId = getActId(act);
-    const isFav = favorites.has(actId);
-    const isSeen = seenActs.has(actId);
+  const actId = getActId(act);
+  const isFav = favorites.has(actId);
+  const isSeen = seenActs.has(actId);
+  
+  // Format day string (e.g., "Thursday" -> "Thu")
+  const actDay = (act.date || act.day || '');
+  const shortDay = actDay.substring(0, 3);
 
-    return `
-      <div class="list-group-item d-flex align-items-center px-1 py-2 gap-2 overflow-hidden ${isSeen ? 'bg-success-subtle' : ''} ${isFav ? 'border border-2 border-warning rounded' : 'border border-bottom rounded'}">
+  return `
+    <div class="list-group-item d-flex align-items-center px-1 py-2 gap-2 overflow-hidden ${isSeen ? 'bg-success-subtle' : ''} ${isFav ? 'border border-2 border-warning rounded' : 'border border-bottom rounded'}">
+      
+      <div class="flex-shrink-0 d-flex flex-column align-items-start gap-1">
+        ${currentDate === 'All' ? `<span class="badge ${isSeen ? 'border border-1 border-secondary rounded bg-primary-subtle' : 'bg-primary-subtle'} text-primary fw-bold px-2 py-1 w-100">${escapeHtml(shortDay)}</span>` : ''}
         
-        <div class="flex-shrink-0">
-          <span class="badge ${isSeen ? 'border border-1 border-secondary rounded bg-secondary-subtle' : 'bg-secondary-subtle'} text-body fw-semibold py-2 px-2">${act.start} - ${act.end}</span>
-        </div>
-        
-        <div class="flex-grow-1" style="min-width: 0;">
-          <div class="h6 mb-0 text-wrap lh-sm fw-bold text-break" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-            ${escapeHtml(act.act)}
-          </div>
-          <div class="small text-muted text-truncate mt-1">${escapeHtml(act.stage)}</div>
-        </div>
-        
-        <div class="d-flex gap-1 align-items-center flex-shrink-0">
-          <button class="btn btn-link btn-sm p-1 text-decoration-none " 
-                  onclick="toggleSeen('${actId}')" 
-                  title="${isSeen ? 'Mark as Unseen' : 'Mark as Seen'}"
-                  aria-label="Seen">
-            ${isSeen ? '✅' : '🔲'}
-          </button>
-          
-          <button class="btn btn-link btn-sm p-1 fav-btn text-decoration-none ${isFav ? 'text-warning fs-5' : 'text-secondary fs-5'}" 
-                  onclick="toggleFavorite('${actId}')" 
-                  title="${isFav ? 'Remove Favorite' : 'Add Favorite'}"
-                  aria-label="Favorite">
-            ${isFav ? '★' : '⚝'}
-          </button>
-        </div>
-
+        <span class="badge ${isSeen ? 'border border-1 border-secondary rounded bg-secondary-subtle' : 'bg-secondary-subtle'} text-body fw-semibold py-1 px-2">
+          ${escapeHtml(act.start)} - ${escapeHtml(act.end)}
+        </span>
       </div>
-    `;
-  }).join('');
+      
+      <div class="flex-grow-1" style="min-width: 0;">
+        <div class="h6 mb-0 text-wrap lh-sm fw-bold text-break" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+          ${escapeHtml(act.act)}
+        </div>
+        <div class="small text-muted text-truncate mt-1">${escapeHtml(act.stage)}</div>
+      </div>
+      
+      <div class="d-flex gap-1 align-items-center flex-shrink-0">
+        <button class="btn btn-link btn-sm p-1 text-decoration-none" 
+                onclick="toggleSeen('${actId}')" 
+                title="${isSeen ? 'Mark as Unseen' : 'Mark as Seen'}"
+                aria-label="Seen">
+          ${isSeen ? '✅' : '🔲'}
+        </button>
+        
+        <button class="btn btn-link btn-sm p-1 fav-btn text-decoration-none ${isFav ? 'text-warning fs-5' : 'text-secondary fs-5'}" 
+                onclick="toggleFavorite('${actId}')" 
+                title="${isFav ? 'Remove Favorite' : 'Add Favorite'}"
+                aria-label="Favorite">
+          ${isFav ? '★' : '⚝'}
+        </button>
+      </div>
+
+    </div>
+  `;
+}).join('');
 }
 
 // Parse a HH:MM time string into minutes, treating early-morning times (00:00-05:59) as late night
@@ -161,12 +186,12 @@ window.toggleSeen = function(actId) {
 function setupEventListeners() {
   // Day Selector (radio buttons)
   const checked = document.querySelector('input[name="day-radio"]:checked');
-  if (checked) currentDay = checked.value;
+  if (checked) currentDate = checked.value;
 
   dayRadioEls = Array.from(document.querySelectorAll('input[name="day-radio"]'));
   dayRadioEls.forEach(radio => radio.addEventListener('change', (e) => {
     if (e.target.checked) {
-      currentDay = e.target.value;
+      currentDate = e.target.value; 
       renderSchedule();
     }
   }));
@@ -257,26 +282,25 @@ function populateStageDropdown() {
   });
 
   // Ensure "All" is always first
-  const stages = ['All', ...sortedStages.filter(s => String(s).toLowerCase() !== 'all')];
-  const others = stages.slice(1);
+  const stages = sortedStages.filter(s => String(s).toLowerCase() !== 'all');
 
   const idAll = 'stage-all';
   const checkedAll = currentStage === 'All' ? 'checked' : '';
 
   let html = `
-    <input type="radio" class="btn-check text-center" name="stage-radio" id="${idAll}" value="All" ${checkedAll}>
-    <label class="btn btn-outline-primary btn-sm w-100 mb-2 text-center" for="${idAll}">All</label>
-    
-    <div class="d-grid gap-2 w-100" style="grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));">
+    <div class="d-flex flex-wrap gap-1 w-100">
+      <input type="radio" class="btn-check" name="stage-radio" id="${idAll}" value="All" ${checkedAll}>
+      <label class="btn btn-outline-primary btn-sm flex-fill text-nowrap text-center" for="${idAll}">All</label>
   `;
 
-  others.forEach(stage => {
+  stages.forEach(stage => {
     const slug = String(stage).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
     const id = `stage-${slug}`;
     const checked = stage === currentStage ? 'checked' : '';
+    
     html += `
       <input type="radio" class="btn-check" name="stage-radio" id="${id}" value="${stage}" ${checked}>
-      <label class="btn btn-outline-primary btn-sm text-truncate w-100" for="${id}">${stage}</label>
+      <label class="btn btn-outline-primary btn-sm flex-fill text-nowrap text-center" for="${id}">${stage}</label>
     `;
   });
 

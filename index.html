@@ -44,6 +44,10 @@
             <div class="row g-2 mb-2">
                 <div class="col-12">
                     <div class="btn-group w-100" role="group" aria-label="Day Selector">
+
+                        <input type="radio" class="btn-check" name="day-radio" id="day-all" value="All" checked>
+                        <label class="btn btn-outline-success btn-sm" for="day-all">All</label>
+
                         <input type="radio" class="btn-check" name="day-radio" id="day-thu" value="Thursday" checked>
                         <label class="btn btn-outline-success btn-sm" for="day-thu">Thu</label>
 
@@ -62,7 +66,7 @@
             <!-- Stage & Search Inputs -->
             <div class="row g-2 pb-2">
                 <div class="col-12">
-                    <div id="stage-group" class="d-flex flex-wrap gap-2 w-100 overflow-auto" role="group" aria-label="Stage Selector">
+                    <div id="stage-group" class="d-flex flex-wrap w-100 overflow-auto" role="group" aria-label="Stage Selector">
                     </div>
                 </div>
             </div>

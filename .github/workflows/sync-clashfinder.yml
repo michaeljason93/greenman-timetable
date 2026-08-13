@@ -26,6 +26,10 @@ jobs:
         with:
           node-version: '24'
 
+      # Step 3: Install Puppeteer and dependencies
+      - name: Install Dependencies
+        run: npm ci
+
       # Step 3: Run the script to fetch Clashfinder API & update data.json
       - name: Fetch & Process Clashfinder Data
         env:

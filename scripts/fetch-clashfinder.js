@@ -1,43 +1,48 @@
-// scripts/fetch-clashfinder.js
 const fs = require('fs');
 const path = require('path');
+const puppeteer = require('puppeteer');
 
-// 1. Read secrets / environment variables directly
 const username = process.env.CLASHFINDER_USERNAME;
 const publicKey = process.env.CLASHFINDER_PUBLIC_KEY;
-const eventId = 'gm2026'; // Your Clashfinder event ID
+const eventId = 'gm2026';
 
 if (!username || !publicKey) {
-  console.error('Error: Missing CLASHFINDER_USERNAME or CLASHFINDER_PUBLIC_KEY environment variables.');
+  console.error('Error: Missing CLASHFINDER_USERNAME or CLASHFINDER_PUBLIC_KEY');
   process.exit(1);
 }
 
-// 2. Build API URL using the directly passed public key
 const API_URL = `https://clashfinder.com/data/event/${eventId}.json?authUsername=${encodeURIComponent(username.trim())}&authPublicKey=${publicKey.trim()}`;
 
 async function updateSchedule() {
+  let browser;
   try {
-    console.log(`Fetching schedule for event: ${eventId}...`);
-
-    // Must include User-Agent header so Cloudflare/Clashfinder doesn't block GitHub Actions
-    const response = await fetch(API_URL, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
+    console.log(`Launching headless browser to bypass CAPTCHA for event: ${eventId}...`);
+    
+    // Launch Chrome with flags required for running in GitHub Actions container
+    browser = await puppeteer.launch({
+      headless: 'new',
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
-    // Handle non-JSON / HTML error responses cleanly
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      const responseText = await response.text();
-      console.error('API Error Response (HTML returned):', responseText.slice(0, 300));
-      throw new Error(`Expected JSON but received ${contentType}. Check that your event ID and authentication parameters are valid.`);
-    }
+    const page = await browser.newPage();
 
-    const cfData = await response.json();
+    // Set a realistic browser user agent
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
+
+    // Navigate to the JSON endpoint and wait for SiteGround redirects/challenges to resolve
+    const response = await page.goto(API_URL, {
+      waitUntil: 'networkidle2',
+      timeout: 30000
+    });
+
+    // Get page text content (JSON)
+    const content = await page.evaluate(() => document.body.innerText);
+    const cfData = JSON.parse(content);
+
+    console.log('Successfully retrieved JSON via Headless Chrome!');
 
     // -------------------------------------------------------------
-    // 3. READ EXISTING DATA TO COMPARE (FOR STATUS FLAGGING)
+    // PROCESS DATA AND WRITE TO DATA.JSON
     // -------------------------------------------------------------
     const outputPath = path.join(__dirname, '../data.json');
     let previousActsMap = new Map();
@@ -53,9 +58,6 @@ async function updateSchedule() {
       }
     }
 
-    // -------------------------------------------------------------
-    // 4. TRANSFORM CLASHFINDER DATA
-    // -------------------------------------------------------------
     const extractedActs = [];
     const locations = cfData?.event?.locations || cfData?.locations || [];
 
@@ -64,7 +66,6 @@ async function updateSchedule() {
       const actsOnStage = location.events || location.acts || [];
 
       actsOnStage.forEach(event => {
-        // Use Clashfinder native ID format (cf-<id>)
         const id = event.id ? `cf-${event.id}` : `${stageName}-${event.name}-${event.start}`.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         const name = event.name || event.act || 'TBA';
         const start = event.start;
@@ -93,16 +94,16 @@ async function updateSchedule() {
       });
     });
 
-    // Sort chronologically by start time
     extractedActs.sort((a, b) => new Date(a.start) - new Date(b.start));
 
-    // Write output to data.json
     fs.writeFileSync(outputPath, JSON.stringify(extractedActs, null, 2), 'utf-8');
     console.log(`Successfully processed ${extractedActs.length} acts and updated data.json`);
 
   } catch (err) {
     console.error('Failed to sync Clashfinder schedule:', err.message);
     process.exit(1);
+  } finally {
+    if (browser) await browser.close();
   }
 }
 

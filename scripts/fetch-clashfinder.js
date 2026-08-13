@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const got = require('got');
 
 const username = process.env.CLASHFINDER_USERNAME;
 const publicKey = process.env.CLASHFINDER_PUBLIC_KEY;
@@ -15,22 +14,23 @@ const API_URL = `https://clashfinder.com/data/event/${eventId}.json?authUsername
 
 async function updateSchedule() {
   try {
-    console.log(`Fetching Clashfinder schedule via HTTP request for event: ${eventId}...`);
+    console.log(`Fetching Clashfinder schedule via native fetch for event: ${eventId}...`);
 
-    const response = await got(API_URL, {
+    const response = await fetch(API_URL, {
+      method: 'GET',
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
         'Accept': 'application/json, text/plain, */*',
         'Accept-Language': 'en-US,en;q=0.9',
         'Cache-Control': 'no-cache'
-      },
-      timeout: {
-        request: 30000
-      },
-      responseType: 'json'
+      }
     });
 
-    const cfData = response.body;
+    if (!response.ok) {
+      throw new Error(`HTTP Error Status: ${response.status} - ${response.statusText}`);
+    }
+
+    const cfData = await response.json();
 
     if (!cfData || typeof cfData !== 'object') {
       throw new Error('Received invalid JSON payload from Clashfinder API.');
@@ -44,7 +44,6 @@ async function updateSchedule() {
     const outputPath = path.join(__dirname, '../data.json');
     let previousActsMap = new Map();
 
-    // Read existing data.json to keep track of changed or updated acts
     if (fs.existsSync(outputPath)) {
       try {
         const prevData = JSON.parse(fs.readFileSync(outputPath, 'utf-8'));

@@ -55,7 +55,7 @@ async function updateSchedule() {
 
       actsOnStage.forEach(event => {
         // Extract basic details
-        const id = String(event.id || `${stageName}-${event.name}-${event.start}`);
+        const id = event.id;
         const name = event.name || event.act;
         const start = event.start;
         const end = event.end;

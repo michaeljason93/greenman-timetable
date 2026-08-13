@@ -1,6 +1,9 @@
 const fs = require('fs');
 const path = require('path');
-const puppeteer = require('puppeteer');
+// Import puppeteer-extra and apply stealth plugin
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
 
 const username = process.env.CLASHFINDER_USERNAME;
 const publicKey = process.env.CLASHFINDER_PUBLIC_KEY;
@@ -16,47 +19,58 @@ const API_URL = `https://clashfinder.com/data/event/${eventId}.json?authUsername
 async function updateSchedule() {
   let browser;
   try {
-    console.log(`Launching headless browser for event: ${eventId}...`);
+    console.log(`Launching stealth headless browser for event: ${eventId}...`);
     
     browser = await puppeteer.launch({
       headless: 'new',
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
-        '--disable-blink-features=AutomationControlled'
+        '--window-size=1920,1080',
+        '--lang=en-US,en'
       ]
     });
 
     const page = await browser.newPage();
 
-    // Set standard browser user agent
-    await page.setUserAgent(
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
-    );
+    // Set standard viewport and realistic headers
+    await page.setViewport({ width: 1920, height: 1080 });
+    await page.setExtraHTTPHeaders({
+      'Accept-Language': 'en-US,en;q=0.9',
+    });
 
-    console.log(`Navigating to API endpoint...`);
-    
-    // Use domcontentloaded so background tracking connections don't hang execution
+    // Step 1: Visit main site to let SiteGround run the security check & set cookies
+    console.log('Navigating to Clashfinder home page to pass security check...');
+    await page.goto('https://clashfinder.com', {
+      waitUntil: 'domcontentloaded',
+      timeout: 30000
+    });
+
+    // Pause briefly for SiteGround JS challenge to execute and set clearance cookie
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
+    // Step 2: Navigate directly to the target API URL now that the session cookie exists
+    console.log('Navigating to JSON API endpoint...');
     await page.goto(API_URL, {
       waitUntil: 'domcontentloaded',
       timeout: 30000
     });
 
-    // Wait 4 seconds for SiteGround CAPTCHA meta-refresh/redirects to execute
-    await new Promise(resolve => setTimeout(resolve, 4000));
+    // Wait 3 seconds for JSON rendering
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
-    // Extract text from <pre> (Chrome's default JSON viewer wrapper) or <body>
+    // Step 3: Extract the raw JSON text from <pre> or <body>
     const rawText = await page.evaluate(() => {
       const pre = document.querySelector('pre');
       return pre ? pre.textContent : document.body.textContent;
     });
 
     if (!rawText || !rawText.trim().startsWith('{')) {
-      throw new Error(`Failed to retrieve valid JSON string. Received page content:\n${rawText.slice(0, 200)}`);
+      throw new Error(`Failed to retrieve valid JSON. Received page content:\n${rawText.slice(0, 250)}`);
     }
 
     const cfData = JSON.parse(rawText.trim());
-    console.log('Successfully parsed Clashfinder schedule data!');
+    console.log('Successfully retrieved and parsed Clashfinder schedule data!');
 
     // -------------------------------------------------------------
     // PROCESS DATA & WRITE TO DATA.JSON

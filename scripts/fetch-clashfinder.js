@@ -34,7 +34,7 @@ async function updateSchedule() {
 
     const page = await browser.newPage();
 
-    // Block unnecessary requests (images, css, fonts) to prevent navigation timeouts
+    // Block heavy resources so networkidle0 resolves quickly
     await page.setRequestInterception(true);
     page.on('request', (req) => {
       const resourceType = req.resourceType();
@@ -51,23 +51,20 @@ async function updateSchedule() {
 
     console.log('Navigating directly to API endpoint...');
     
-    // Use waitUntil: 'commit' so Puppeteer moves forward as soon as the response headers arrive
-    const response = await page.goto(API_URL, {
-      waitUntil: 'commit',
-      timeout: 60000
+    // Valid Puppeteer option: networkidle0 resolves when network connections drop to 0
+    await page.goto(API_URL, {
+      waitUntil: 'networkidle0',
+      timeout: 45000
     });
 
-    // Allow 5 seconds for any JS/meta-refresh CAPTCHA redirect to complete
-    await new Promise(resolve => setTimeout(resolve, 5000));
-
-    // Retrieve full text content
+    // Extract raw text content from the DOM
     const rawText = await page.evaluate(() => {
       const pre = document.querySelector('pre');
       return pre ? pre.textContent : document.body.textContent;
     });
 
     if (!rawText || !rawText.trim().startsWith('{')) {
-      throw new Error(`Failed to retrieve valid JSON string. Received content preview:\n${rawText.slice(0, 300)}`);
+      throw new Error(`Failed to retrieve valid JSON. Received page content preview:\n${rawText.slice(0, 300)}`);
     }
 
     const cfData = JSON.parse(rawText.trim());

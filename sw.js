@@ -8,7 +8,7 @@ const PRECACHE_ASSETS = [
   './app.js',
   './manifest.json',
   './vendors/bootstrap.min.css',
-  './vendors/bootstrap.bundle.min.js'
+  './vendors/bootstrap.min.js'
 ];
 
 self.addEventListener('install', (event) => {

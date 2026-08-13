@@ -451,11 +451,39 @@ function initTheme() {
   applyTheme((saved === 'light' || saved === 'dark') ? saved : 'light');
 }
 
+// Helper for ordinal suffixes (1st, 2nd, 3rd, 4th, etc.)
+function getOrdinalSuffix(dayNum) {
+  if (dayNum > 3 && dayNum < 21) return 'th';
+  switch (dayNum % 10) {
+    case 1: return 'st';
+    case 2: return 'nd';
+    case 3: return 'rd';
+    default: return 'th';
+  }
+}
+
 function updateFooterTimestamp(data) {
   const lastUpdatedEl = document.getElementById('data-last-updated');
   if (!lastUpdatedEl) return;
+
   const modifiedTime = data?.lastEdit || data?.modified;
-  lastUpdatedEl.textContent = modifiedTime ? `Last updated: ${modifiedTime}` : `Source Last Modified: Unknown`;
+
+  if (modifiedTime) {
+    // Attempt to parse and format timestamp like "Fri 15th 07:50"
+    const d = new Date(modifiedTime.replace(' ', 'T'));
+    if (!isNaN(d.getTime())) {
+      const weekday = d.toLocaleDateString('en-US', { weekday: 'short' }); // "Fri"
+      const dayNum = d.getDate(); // 15
+      const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }); // "07:50"
+      
+      const formattedDate = `${weekday} ${dayNum}${getOrdinalSuffix(dayNum)} ${time}`;
+      lastUpdatedEl.innerHTML = `<span>Last updated:<br/>${formattedDate}</span>`;
+      return;
+    }
+  }
+
+  // Fallback if timestamp is missing or couldn't be parsed
+  lastUpdatedEl.innerHTML = `<span>Last updated: Unknown</span>`;
 }
 
 function scrollToTop() {

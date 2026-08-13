@@ -18,7 +18,6 @@ async function updateSchedule() {
   try {
     console.log(`Launching headless browser to bypass CAPTCHA for event: ${eventId}...`);
     
-    // Launch Chrome with flags required for running in GitHub Actions container
     browser = await puppeteer.launch({
       headless: 'new',
       args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -26,20 +25,25 @@ async function updateSchedule() {
 
     const page = await browser.newPage();
 
-    // Set a realistic browser user agent
+    // Set a standard User-Agent
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
 
-    // Navigate to the JSON endpoint and wait for SiteGround redirects/challenges to resolve
-    const response = await page.goto(API_URL, {
+    // Step 1: Visit main Clashfinder page first to establish cookies / pass CAPTCHA
+    await page.goto('https://clashfinder.com', {
       waitUntil: 'networkidle2',
       timeout: 30000
     });
 
-    // Get page text content (JSON)
-    const content = await page.evaluate(() => document.body.innerText);
-    const cfData = JSON.parse(content);
+    // Step 2: Perform fetch directly inside the browser context to get clean JSON
+    const cfData = await page.evaluate(async (url) => {
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      return await res.json();
+    }, API_URL);
 
-    console.log('Successfully retrieved JSON via Headless Chrome!');
+    console.log('Successfully retrieved clean JSON via Puppeteer browser fetch!');
 
     // -------------------------------------------------------------
     // PROCESS DATA AND WRITE TO DATA.JSON

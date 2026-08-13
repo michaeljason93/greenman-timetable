@@ -1,0 +1,11 @@
+{
+  "short_name": "GM 2026",
+  "name": "Green Man Festival 2026 Schedule",
+  "description": "Offline-capable schedule and artist clashfinder for Green Man Festival 2026.",
+  "start_url": "./index.html",
+  "background_color": "#121212",
+  "theme_color": "#121212",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "./"
+}

@@ -446,40 +446,34 @@ async function loadScheduleData() {
 // Update your Refresh Cache event listener
 const refreshCacheBtn = document.getElementById('refresh-cache-btn');
 if (refreshCacheBtn) {
-  refreshCacheBtn.addEventListener('click', async () => {
+    refreshCacheBtn.addEventListener('click', async () => {
     try {
       refreshCacheBtn.disabled = true;
       refreshCacheBtn.innerHTML = `⏳ <span>Updating...</span>`;
 
-      // 1. Clear caches if Service Worker is active
-      if ('caches' in window) {
-        const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map(name => caches.delete(name)));
-      }
+      // Fetch fresh JSON with timestamp parameter to bypass browser HTTP cache
+      const response = await fetch(`./data/gm2025.json?t=${Date.now()}`);
+      
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-      // 2. Fetch fresh JSON bypassing browser cache
-      const response = await fetch(`./data/gm2025.json?t=${Date.now()}`, { cache: 'reload' });
       const rawClashfinderData = await response.json();
 
-      // Update footer timestamp with the newly fetched data
+      // Update UI
       updateFooterTimestamp(rawClashfinderData);
-
       allActs = parseClashfinderJSON(rawClashfinderData);
       renderSchedule();
 
       refreshCacheBtn.innerHTML = `✅ <span>Updated!</span>`;
-      setTimeout(() => {
-        refreshCacheBtn.disabled = false;
-        refreshCacheBtn.innerHTML = `🔄 <span>Refresh Data</span>`;
-      }, 2000);
 
     } catch (err) {
-      console.error('Failed to refresh data:', err);
-      refreshCacheBtn.innerHTML = `❌ <span>Error</span>`;
+      console.warn('Network unavailable, keeping cached data:', err);
+      // Alert the user they are offline without clearing existing data or breaking the page
+      refreshCacheBtn.innerHTML = `⚠️ <span>Offline (Using Saved Data)</span>`;
+    } finally {
       setTimeout(() => {
         refreshCacheBtn.disabled = false;
         refreshCacheBtn.innerHTML = `🔄 <span>Refresh Data</span>`;
-      }, 2000);
+      }, 3000);
     }
   });
 }

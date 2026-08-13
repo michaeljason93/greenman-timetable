@@ -1,0 +1,50 @@
+name: Sync Clashfinder Schedule
+
+on:
+  schedule:
+    # Runs every 3 hours at 17 minutes past the hour (e.g., 00:17, 03:17, 06:17...)
+    - cron: '0 */3 * * *'
+  
+  # Enables manual execution via GitHub web UI and GitHub Mobile App
+  workflow_dispatch:
+
+jobs:
+  sync-schedule:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # Grants permission to commit changes back to the repository
+
+    steps:
+      # Step 1: Check out repository code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Step 3: Run the script to fetch Clashfinder API & update data.json
+      - name: Fetch & Process Clashfinder Data
+        env:
+          CLASHFINDER_USERNAME: ${{ secrets.CLASHFINDER_USERNAME }}
+          CLASHFINDER_PRIVATE_KEY: ${{ secrets.CLASHFINDER_PRIVATE_KEY }}
+        run: node scripts/fetch-clashfinder.js
+
+      # Step 4: Commit and push changes back to the main branch if data.json changed
+      - name: Commit and Push Updated data.json
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          git add data.json
+          
+          # Only commit if there are actual diffs/changes in data.json
+          if git diff --staged --quiet; then
+            echo "No changes detected in data.json. Skipping commit."
+          else
+            git commit -m "chore: sync latest Clashfinder schedule [skip ci]"
+            git push
+          fi

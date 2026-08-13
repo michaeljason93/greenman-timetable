@@ -5,41 +5,28 @@ const username = process.env.CLASHFINDER_USERNAME;
 const publicKey = process.env.CLASHFINDER_PUBLIC_KEY;
 const eventId = 'gm2026';
 
-if (!username || !publicKey) {
-  console.error('Error: Missing CLASHFINDER_USERNAME or CLASHFINDER_PUBLIC_KEY in environment variables');
-  process.exit(1);
-}
-
-const API_URL = `https://clashfinder.com/data/event/${eventId}.json?authUsername=${encodeURIComponent(username.trim())}&authPublicKey=${publicKey.trim()}`;
+const PROXY_URL = `https://clashfinder-proxy.michaeljason93.workers.dev/?eventId=${eventId}&username=${encodeURIComponent(username)}&publicKey=${publicKey}`;
 
 async function updateSchedule() {
   try {
-    console.log(`Fetching Clashfinder schedule via native fetch for event: ${eventId}...`);
+    console.log(`Fetching Clashfinder schedule via Cloudflare proxy...`);
 
-    const response = await fetch(API_URL, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        'Accept': 'application/json, text/plain, */*',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Cache-Control': 'no-cache'
-      }
-    });
+    const response = await fetch(PROXY_URL);
 
     if (!response.ok) {
-      throw new Error(`HTTP Error Status: ${response.status} - ${response.statusText}`);
+      throw new Error(`Proxy Error: ${response.status} ${response.statusText}`);
     }
 
     const cfData = await response.json();
 
-    if (!cfData || typeof cfData !== 'object') {
-      throw new Error('Received invalid JSON payload from Clashfinder API.');
+    if (!cfData || typeof cfData !== 'object' || cfData.error) {
+      throw new Error(`Invalid response: ${JSON.stringify(cfData)}`);
     }
 
-    console.log('Successfully retrieved and parsed Clashfinder schedule data!');
+    console.log('Successfully received data from proxy!');
 
     // -------------------------------------------------------------
-    // PROCESS DATA AND UPDATE DATA.JSON
+    // PROCESS DATA AND WRITE TO DATA.JSON
     // -------------------------------------------------------------
     const outputPath = path.join(__dirname, '../data.json');
     let previousActsMap = new Map();
@@ -66,7 +53,6 @@ async function updateSchedule() {
         const actName = event.name || event.act || event.short || 'TBA';
         const shortName = event.short || actName;
 
-        // Unique ID resolution with fallbacks
         const rawId = event.mbid || event.id || `${stageName}-${shortName}-${event.start}`;
         const id = event.mbid 
           ? `mbid-${event.mbid}` 
@@ -101,12 +87,10 @@ async function updateSchedule() {
       });
     });
 
-    // Sort acts chronologically by start time
     extractedActs.sort((a, b) => new Date(a.start) - new Date(b.start));
 
-    // Save output back to data.json
     fs.writeFileSync(outputPath, JSON.stringify(extractedActs, null, 2), 'utf-8');
-    console.log(`Successfully processed ${extractedActs.length} acts and updated data.json`);
+    console.log(`Successfully updated data.json with ${extractedActs.length} acts!`);
 
   } catch (err) {
     console.error('Failed to sync Clashfinder schedule:', err.message);

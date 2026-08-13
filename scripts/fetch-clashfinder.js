@@ -1,14 +1,13 @@
 // scripts/fetch-clashfinder.js
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 
 // 1. Read secrets securely from environment variables
 const username = process.env.CLASHFINDER_USERNAME;
 const publicKey = process.env.CLASHFINDER_PUBLIC_KEY;
 const eventId = 'gm2026'; // Your Clashfinder event ID
 
-if (!username || !privateKey) {
+if (!username || !publicKey) {
   console.error('Error: Missing CLASHFINDER_USERNAME or CLASHFINDER_PRIVATE_KEY environment variables.');
   process.exit(1);
 }

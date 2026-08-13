@@ -38,23 +38,8 @@
 
             <div class="row g-2 mb-2">
                 <div class="col-12">
-                    <div class="btn-group w-100" role="group" aria-label="Day Selector">
-
-                        <input type="radio" class="btn-check" name="day-radio" id="day-all" value="All">
-                        <label class="btn btn-outline-success btn-sm" for="day-all">All</label>
-
-                        <input type="radio" class="btn-check" name="day-radio" id="day-thu" value="Thursday">
-                        <label class="btn btn-outline-success btn-sm" for="day-thu">Thu</label>
-
-                        <input type="radio" class="btn-check" name="day-radio" id="day-fri" value="Friday">
-                        <label class="btn btn-outline-success btn-sm" for="day-fri">Fri</label>
-
-                        <input type="radio" class="btn-check" name="day-radio" id="day-sat" value="Saturday">
-                        <label class="btn btn-outline-success btn-sm" for="day-sat">Sat</label>
-
-                        <input type="radio" class="btn-check" name="day-radio" id="day-sun" value="Sunday">
-                        <label class="btn btn-outline-success btn-sm" for="day-sun">Sun</label>
-                    </div>
+                    <div id="day-selector-container" class="btn-group w-100" role="group" aria-label="Day Selector">
+                        </div>
                 </div>
             </div>
 
@@ -87,10 +72,10 @@
         <div class="container d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-2">
                 <button id="refresh-cache-btn" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
-                    🔄 <span>Refresh Data</span>
+                    🔄 <span>Refresh</span>
                 </button>
                 <small id="data-last-updated" class="text-muted ms-2" style="font-size: 0.75rem;">
-                    Source Last Modified: Loading...
+                    Last updated: Loading...
                 </small>
             </div>
             

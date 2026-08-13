@@ -1,7 +1,6 @@
 // --- 1. STATE MANAGEMENT ---
 let allActs = [];
-let currentDay = getDefaultDate();
-let currentDate = 'All';
+let currentDate = 'All'; // Initial state before dynamic render
 let currentStage = 'All';
 let searchQuery = '';
 let showFavoritesOnly = false;
@@ -16,33 +15,22 @@ let seenActs = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_SEEN) || '[]'
 
 // --- 2. DOM ELEMENTS ---
 const actListEl = document.getElementById('act-list');
-
-let dayRadioEls = [];
 const searchInputEl = document.getElementById('search-input');
 const favToggleBtn = document.getElementById('fav-toggle');
 const seenToggleBtn = document.getElementById('seen-toggle');
 const themeToggleBtn = document.getElementById('theme-toggle');
+const refreshCacheBtn = document.getElementById('refresh-cache-btn');
 
 const THEME_KEY = 'gm2026_theme';
 
-function getDefaultDate() {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth(); // 7 = August
-
-  if (year !== 2026 || month !== 7) {
-    return 'All';
-  }
-
-  const date = today.getDate();
-  switch (date) {
-    case 20: return 'Thursday';
-    case 21: return 'Friday';
-    case 22: return 'Saturday';
-    case 23: return 'Sunday';
-    default: return 'All';
-  }
-}
+// Global configuration order map for sorting days chronologically
+const dayOrder = {
+  'thursday': 1,
+  'friday': 2,
+  'saturday': 3,
+  'sunday': 4,
+  'monday': 5
+};
 
 // --- 3. INIT & DATA FETCH ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -55,18 +43,23 @@ document.addEventListener('DOMContentLoaded', () => {
 async function fetchScheduleData() {
   try {
     const response = await fetch('./data/gm2026.json');
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    
     const rawClashfinderData = await response.json();
     
     // Process Clashfinder structure into a flat array of acts
     allActs = parseClashfinderJSON(rawClashfinderData);
     updateFooterTimestamp(rawClashfinderData);
     
+    // Dynamically render day buttons and determine smart default day
+    currentDate = renderDaySelector(allActs, currentDate);
+    
     populateStageDropdown();
     renderSchedule();
   } catch (err) {
     console.error('Error loading schedule:', err);
     if (actListEl) {
-      actListEl.innerHTML = `<p class="error">Failed to load schedule. Ensure ./data/gm2025.json exists.</p>`;
+      actListEl.innerHTML = `<p class="error text-center p-3 text-danger">Failed to load schedule. Ensure ./data/gm2026.json exists.</p>`;
     }
   }
 }
@@ -124,6 +117,68 @@ function parseClashfinderJSON(cfData) {
   return acts;
 }
 
+// --- DYNAMIC DAY SELECTOR & SMART DEFAULT ---
+function renderDaySelector(acts, currentSelectedDay = null) {
+  const container = document.getElementById('day-selector-container');
+  if (!container) return 'All';
+
+  const uniqueDays = [...new Set(acts.map(a => String(a.day || '').trim().toLowerCase()))]
+    .filter(day => day !== '')
+    .sort((a, b) => (dayOrder[a] || 99) - (dayOrder[b] || 99));
+
+  if (uniqueDays.length === 0) return 'All';
+
+  const activeDay = currentSelectedDay || getDefaultDate(uniqueDays, acts);
+
+  let html = `
+    <input type="radio" class="btn-check" name="day-radio" id="day-all" value="All" ${activeDay === 'All' ? 'checked' : ''}>
+    <label class="btn btn-outline-success btn-sm" for="day-all">All</label>
+  `;
+
+  uniqueDays.forEach(dayName => {
+    const capitalized = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+    const shortLabel = capitalized.substring(0, 3);
+    const isChecked = activeDay.toLowerCase() === dayName ? 'checked' : '';
+
+    html += `
+      <input type="radio" class="btn-check" name="day-radio" id="day-${dayName}" value="${capitalized}" ${isChecked}>
+      <label class="btn btn-outline-success btn-sm" for="day-${dayName}">${shortLabel}</label>
+    `;
+  });
+
+  container.innerHTML = html;
+
+  container.querySelectorAll('input[name="day-radio"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      currentDate = e.target.value;
+      renderSchedule();
+    });
+  });
+
+  return activeDay;
+}
+
+function getDefaultDate(availableDays, acts) {
+  // 🛡️ Safety check against TypeError: acts is not iterable
+  if (!Array.isArray(acts) || acts.length === 0) {
+    return 'All';
+  }
+
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  
+  for (const act of acts) {
+    if (act.rawStart && act.rawStart.startsWith(todayStr)) {
+      const actDayLower = String(act.day || '').trim().toLowerCase();
+      if (availableDays.includes(actDayLower)) {
+        return act.day.charAt(0).toUpperCase() + act.day.slice(1);
+      }
+    }
+  }
+
+  return 'All';
+}
+
 // --- 4. RENDER LOGIC ---
 function renderSchedule() {
   const filtered = allActs.filter(act => {
@@ -137,13 +192,6 @@ function renderSchedule() {
     
     return matchesDay && matchesStage && matchesSearch && matchesFav && matchesSeen;
   });
-
-  const dayOrder = {
-    'thursday': 1,
-    'friday': 2,
-    'saturday': 3,
-    'sunday': 4
-  };
 
   filtered.sort((a, b) => {
     const dayA = String(a.day || '').trim().toLowerCase();
@@ -171,21 +219,21 @@ function renderSchedule() {
     const actId = getActId(act);
     const isFav = favorites.has(actId);
     const isSeen = seenActs.has(actId);
-    
-    const actDay = (act.day || '');
-    const shortDay = actDay.substring(0, 3);
+    const shortDay = (act.day || '').substring(0, 3);
 
     return `
       <div class="list-group-item d-flex align-items-center px-1 py-2 gap-2 overflow-hidden ${isSeen ? 'bg-success-subtle' : ''} ${isFav ? 'border border-2 border-warning rounded' : 'border border-bottom rounded'}">
         
-        <div class="flex-shrink-0 d-flex flex-column align-items-start gap-1">
-          ${currentDate === 'All' ? `<span class="badge ${isSeen ? 'border border-1 border-secondary rounded bg-primary-subtle' : 'bg-primary-subtle'} text-primary fw-bold px-2 py-1 w-100">${escapeHtml(shortDay)}</span>` : ''}
-          
-          <span class="badge ${isSeen ? 'border border-1 border-secondary rounded bg-secondary-subtle' : 'bg-secondary-subtle'} text-body fw-semibold py-1 px-2">
-            ${escapeHtml(act.start)} - ${escapeHtml(act.end)}
-          </span>
-        </div>
+       <div class="flex-shrink-0 d-flex flex-column align-items-start gap-1">
+        <span class="badge ${isSeen ? 'border border-1 border-secondary rounded bg-primary-subtle' : 'bg-primary-subtle'} text-primary fw-bold px-2 py-1 w-100">
+          ${escapeHtml(shortDay)}
+        </span>
         
+        <span class="badge ${isSeen ? 'border border-1 border-secondary rounded bg-secondary-subtle' : 'bg-secondary-subtle'} text-body fw-semibold py-1 px-2">
+          ${escapeHtml(act.start)} - ${escapeHtml(act.end)}
+        </span>
+      </div>
+             
         <div class="flex-grow-1" style="min-width: 0;">
           <div class="h6 mb-0 text-wrap lh-sm fw-bold text-break" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
             ${escapeHtml(act.act)}
@@ -214,19 +262,17 @@ function renderSchedule() {
   }).join('');
 }
 
-// Parse a HH:MM time string into minutes, treating early-morning times (00:00-05:59) as late night
+// Parse HH:MM into pure total minutes from midnight
 function parseTimeForSort(timeStr) {
   const m = /^\s*(\d{1,2}):(\d{2})\s*$/.exec(String(timeStr || ''));
   if (!m) return 0;
-  let hh = parseInt(m[1], 10);
+
+  const hh = parseInt(m[1], 10);
   const mm = parseInt(m[2], 10);
 
-  if (hh >= 0 && hh < 6) hh += 24;
-
-  return hh * 60 + mm;
+  return hh * 60 + mm; 
 }
 
-// Helper to construct or retrieve unique act ID
 function getActId(act) {
   if (act.id) return act.id;
   return `${act.day}-${act.stage}-${act.start}-${act.act}`
@@ -242,7 +288,6 @@ window.toggleFavorite = function(actId) {
   } else {
     favorites.add(actId);
   }
-  
   localStorage.setItem(STORAGE_KEY_FAVS, JSON.stringify(Array.from(favorites)));
   renderSchedule();
 };
@@ -253,26 +298,12 @@ window.toggleSeen = function(actId) {
   } else {
     seenActs.add(actId);
   }
-  
   localStorage.setItem(STORAGE_KEY_SEEN, JSON.stringify(Array.from(seenActs)));
   renderSchedule();
 };
 
 // --- 6. EVENT LISTENERS ---
 function setupEventListeners() {
-  const activeRadio = document.querySelector(`input[name="day-radio"][value="${currentDate}"]`);
-  if (activeRadio) {
-    activeRadio.checked = true;
-  }
-
-  const dayRadioEls = Array.from(document.querySelectorAll('input[name="day-radio"]'));
-  dayRadioEls.forEach(radio => radio.addEventListener('change', (e) => {
-    if (e.target.checked) {
-      currentDate = e.target.value;
-      renderSchedule();
-    }
-  }));
-
   if (searchInputEl) {
     searchInputEl.addEventListener('input', (e) => {
       searchQuery = e.target.value;
@@ -284,13 +315,8 @@ function setupEventListeners() {
     favToggleBtn.addEventListener('click', () => {
       showFavoritesOnly = !showFavoritesOnly;
       favToggleBtn.innerText = showFavoritesOnly ? '★' : '⚝';
-
-      if (showFavoritesOnly) {
-        favToggleBtn.classList.add('btn-warning', 'text-dark');
-      } else {
-        favToggleBtn.classList.remove('btn-warning', 'text-dark');
-      }
-
+      favToggleBtn.classList.toggle('btn-warning', showFavoritesOnly);
+      favToggleBtn.classList.toggle('text-dark', showFavoritesOnly);
       renderSchedule();
     });
   }
@@ -299,13 +325,8 @@ function setupEventListeners() {
     seenToggleBtn.addEventListener('click', () => {
       showSeenOnly = !showSeenOnly;
       seenToggleBtn.innerText = showSeenOnly ? '✅' : '🔲';
-
-      if (showSeenOnly) {
-        seenToggleBtn.classList.add('btn-success', 'text-white');
-      } else {
-        seenToggleBtn.classList.remove('btn-success', 'text-white');
-      }
-
+      seenToggleBtn.classList.toggle('btn-success', showSeenOnly);
+      seenToggleBtn.classList.toggle('text-white', showSeenOnly);
       renderSchedule();
     });
   }
@@ -313,20 +334,45 @@ function setupEventListeners() {
   if (themeToggleBtn) {
     themeToggleBtn.addEventListener('click', () => {
       const current = document.documentElement.getAttribute('data-bs-theme') || 'dark';
-      const next = current === 'dark' ? 'light' : 'dark';
-      applyTheme(next);
+      applyTheme(current === 'dark' ? 'light' : 'dark');
     });
   }
 
   const scrollTopBtn = document.getElementById('scroll-top-btn');
-  
   if (scrollTopBtn) {
     scrollTopBtn.addEventListener('click', (e) => {
-      e.preventDefault(); // Prevent any default anchor navigation
+      e.preventDefault();
       scrollToTop();
     });
   }
 
+  // Refresh cache button listener with offline safeguard
+  if (refreshCacheBtn) {
+    refreshCacheBtn.addEventListener('click', async () => {
+      try {
+        refreshCacheBtn.disabled = true;
+        refreshCacheBtn.innerHTML = `⏳ <span>Updating...</span>`;
+
+        const response = await fetch(`./data/gm2026.json?t=${Date.now()}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        const rawClashfinderData = await response.json();
+        updateFooterTimestamp(rawClashfinderData);
+        allActs = parseClashfinderJSON(rawClashfinderData);
+        renderSchedule();
+
+        refreshCacheBtn.innerHTML = `✅ <span>Updated!</span>`;
+      } catch (err) {
+        console.warn('Network unavailable, keeping cached data:', err);
+        refreshCacheBtn.innerHTML = `⚠️ <span>Offline (Using Saved Data)</span>`;
+      } finally {
+        setTimeout(() => {
+          refreshCacheBtn.disabled = false;
+          refreshCacheBtn.innerHTML = `🔄 <span>Refresh</span>`;
+        }, 3000);
+      }
+    });
+  }
 }
 
 function populateStageDropdown() {
@@ -335,32 +381,27 @@ function populateStageDropdown() {
     'far out',
     'walled garden',
     'chai wallahs',
+    'rising',
     'round the twist',
     'wishbone',
+    'babbling tongues',
     'cinedrome'
   ];
 
   const rawStages = [...new Set(allActs.map(a => a.stage))];
-
   const sortedStages = rawStages.sort((a, b) => {
     const indexA = customOrder.indexOf(String(a).toLowerCase().trim());
     const indexB = customOrder.indexOf(String(b).toLowerCase().trim());
-
-    const rankA = indexA === -1 ? 999 : indexA;
-    const rankB = indexB === -1 ? 999 : indexB;
-
-    return rankA - rankB;
+    return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
   });
 
   const stages = sortedStages.filter(s => String(s).toLowerCase() !== 'all');
-
-  const idAll = 'stage-all';
   const checkedAll = currentStage === 'All' ? 'checked' : '';
 
   let html = `
     <div class="d-flex flex-wrap gap-1 w-100">
-      <input type="radio" class="btn-check" name="stage-radio" id="${idAll}" value="All" ${checkedAll}>
-      <label class="btn btn-outline-primary btn-sm flex-fill text-nowrap text-center" for="${idAll}">All</label>
+      <input type="radio" class="btn-check" name="stage-radio" id="stage-all" value="All" ${checkedAll}>
+      <label class="btn btn-outline-primary btn-sm flex-fill text-nowrap text-center" for="stage-all">All</label>
   `;
 
   stages.forEach(stage => {
@@ -380,13 +421,14 @@ function populateStageDropdown() {
   if (!stageGroupEl) return;
   stageGroupEl.innerHTML = html;
 
-  const stageRadioEls = Array.from(document.querySelectorAll('input[name="stage-radio"]'));
-  stageRadioEls.forEach(radio => radio.addEventListener('change', (e) => {
-    if (e.target.checked) {
-      currentStage = e.target.value;
-      renderSchedule();
-    }
-  }));
+  document.querySelectorAll('input[name="stage-radio"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        currentStage = e.target.value;
+        renderSchedule();
+      }
+    });
+  });
 }
 
 function escapeHtml(str) {
@@ -394,7 +436,6 @@ function escapeHtml(str) {
   return s.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 }
 
-// --- THEME HANDLING ---
 function applyTheme(theme) {
   const t = theme === 'light' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-bs-theme', t);
@@ -407,87 +448,18 @@ function applyTheme(theme) {
 
 function initTheme() {
   const saved = localStorage.getItem(THEME_KEY);
-  const initial = (saved === 'light' || saved === 'dark') ? saved : 'light';
-  applyTheme(initial);
+  applyTheme((saved === 'light' || saved === 'dark') ? saved : 'light');
 }
 
-// Function to ensure footer timestamp is always displayed
 function updateFooterTimestamp(data) {
   const lastUpdatedEl = document.getElementById('data-last-updated');
   if (!lastUpdatedEl) return;
-
-  // Extract modification time from JSON
   const modifiedTime = data?.lastEdit || data?.modified;
-
-  if (modifiedTime) {
-    lastUpdatedEl.textContent = `Source Last Modified: ${modifiedTime}`;
-  } else {
-    // Fallback if neither property exists in the JSON
-    lastUpdatedEl.textContent = `Source Last Modified: Unknown`;
-  }
+  lastUpdatedEl.textContent = modifiedTime ? `Last updated: ${modifiedTime}` : `Source Last Modified: Unknown`;
 }
 
-// Update your main fetch / initialization logic
-async function loadScheduleData() {
-  try {
-    const response = await fetch('./data/gm2025.json');
-    const rawClashfinderData = await response.json();
-
-    // Display the lastEdit/modified date in the footer
-    updateFooterTimestamp(rawClashfinderData);
-
-    allActs = parseClashfinderJSON(rawClashfinderData);
-    renderSchedule();
-  } catch (err) {
-    console.error('Error loading schedule:', err);
-  }
-}
-
-// Update your Refresh Cache event listener
-const refreshCacheBtn = document.getElementById('refresh-cache-btn');
-if (refreshCacheBtn) {
-    refreshCacheBtn.addEventListener('click', async () => {
-    try {
-      refreshCacheBtn.disabled = true;
-      refreshCacheBtn.innerHTML = `⏳ <span>Updating...</span>`;
-
-      // Fetch fresh JSON with timestamp parameter to bypass browser HTTP cache
-      const response = await fetch(`./data/gm2025.json?t=${Date.now()}`);
-      
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-      const rawClashfinderData = await response.json();
-
-      // Update UI
-      updateFooterTimestamp(rawClashfinderData);
-      allActs = parseClashfinderJSON(rawClashfinderData);
-      renderSchedule();
-
-      refreshCacheBtn.innerHTML = `✅ <span>Updated!</span>`;
-
-    } catch (err) {
-      console.warn('Network unavailable, keeping cached data:', err);
-      // Alert the user they are offline without clearing existing data or breaking the page
-      refreshCacheBtn.innerHTML = `⚠️ <span>Offline (Using Saved Data)</span>`;
-    } finally {
-      setTimeout(() => {
-        refreshCacheBtn.disabled = false;
-        refreshCacheBtn.innerHTML = `🔄 <span>Refresh Data</span>`;
-      }, 3000);
-    }
-  });
-}
-
-// Reliable scroll-to-top helper
 function scrollToTop() {
-  // Try smooth scrolling on window first
-  window.scrollTo({
-    top: 0,
-    left: 0,
-    behavior: 'smooth'
-  });
-
-  // Fallback for custom scroll containers / body overflow
+  window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
 }

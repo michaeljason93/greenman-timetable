@@ -18,7 +18,7 @@ const API_URL = `https://clashfinder.com/data/event/${eventId}.json?authUsername
 async function updateSchedule() {
   let browser;
   try {
-    console.log(`Launching stealth headless browser for event: ${eventId}...`);
+    console.log(`Launching stealth browser for event: ${eventId}...`);
     
     browser = await puppeteer.launch({
       headless: 'new',
@@ -26,8 +26,7 @@ async function updateSchedule() {
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-web-security', // Bypasses CORS restrictions on about:blank
-        '--disable-features=IsolateOrigins,site-per-process'
+        '--disable-blink-features=AutomationControlled'
       ]
     });
 
@@ -37,37 +36,31 @@ async function updateSchedule() {
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
     );
 
-    console.log('Navigating to origin domain to establish context...');
+    console.log('Listening for API network response...');
+
+    // Set up a promise to capture the HTTP network response directly
+    const jsonResponsePromise = page.waitForResponse(
+      (response) => response.url().includes(`/data/event/${eventId}.json`) && response.status() === 200,
+      { timeout: 45000 }
+    );
+
+    console.log('Navigating to API endpoint...');
     
-    // Navigate to the Clashfinder domain base so the origin matches the API
-    await page.goto('https://clashfinder.com/robots.txt', {
-      waitUntil: 'domcontentloaded',
-      timeout: 15000
-    }).catch(() => {
-      console.warn('robots.txt load timed out, proceeding with fetch fallback...');
+    // Trigger navigation to the API endpoint
+    await page.goto(API_URL, { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {
+      // Ignore initial navigation timeout if SiteGround redirects mid-flight
     });
 
-    console.log('Executing in-browser fetch request...');
+    // Capture the target HTTP response payload directly from network logs
+    const response = await jsonResponsePromise;
+    const rawText = await response.text();
 
-    // Fetch directly within page context
-    const responseData = await page.evaluate(async (url) => {
-      const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json, text/plain, */*'
-        }
-      });
-      if (!res.ok) {
-        throw new Error(`HTTP Error Status: ${res.status}`);
-      }
-      return await res.json();
-    }, API_URL);
-
-    if (!responseData || typeof responseData !== 'object') {
-      throw new Error('Received invalid data payload.');
+    if (!rawText || !rawText.trim().startsWith('{')) {
+      throw new Error(`Failed to retrieve valid JSON. Received payload preview:\n${rawText.slice(0, 250)}`);
     }
 
-    console.log('Successfully retrieved and parsed Clashfinder schedule data!');
+    const cfData = JSON.parse(rawText.trim());
+    console.log('Successfully captured and parsed Clashfinder schedule payload!');
 
     // -------------------------------------------------------------
     // PROCESS DATA AND WRITE TO DATA.JSON
@@ -87,7 +80,7 @@ async function updateSchedule() {
     }
 
     const extractedActs = [];
-    const locations = responseData?.event?.locations || responseData?.locations || [];
+    const locations = cfData?.event?.locations || cfData?.locations || [];
 
     locations.forEach(location => {
       const stageName = location.name;

@@ -20,37 +20,27 @@ const actListEl = document.getElementById('act-list');
 let dayRadioEls = [];
 const searchInputEl = document.getElementById('search-input');
 const favToggleBtn = document.getElementById('fav-toggle');
-const seenToggleBtn = document.getElementById('seen-toggle'); // Add this button in index.html if desired
+const seenToggleBtn = document.getElementById('seen-toggle');
 const themeToggleBtn = document.getElementById('theme-toggle');
 
 const THEME_KEY = 'gm2026_theme';
 
 function getDefaultDate() {
   const today = new Date();
-  
-  // Get year, month (0-indexed, so Aug is 7), and day of the month
   const year = today.getFullYear();
   const month = today.getMonth(); // 7 = August
-  const date = today.getDate();
 
-  // If we aren't in August 2026, default to 'All'
   if (year !== 2026 || month !== 7) {
     return 'All';
   }
 
-  // Green Man 2026 Dates: Aug 20 (Thu) - Aug 23 (Sun)
+  const date = today.getDate();
   switch (date) {
-    case 20:
-      return 'Thursday';
-    case 21:
-      return 'Friday';
-    case 22:
-      return 'Saturday';
-    case 23:
-      return 'Sunday';
-    default:
-      // Before Aug 20 or after Aug 23
-      return 'All';
+    case 20: return 'Thursday';
+    case 21: return 'Friday';
+    case 22: return 'Saturday';
+    case 23: return 'Sunday';
+    default: return 'All';
   }
 }
 
@@ -64,24 +54,82 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function fetchScheduleData() {
   try {
-    const response = await fetch('./data.json');
-    allActs = await response.json();
+    const response = await fetch('./data/gm2026.json');
+    const rawClashfinderData = await response.json();
+    
+    // Process Clashfinder structure into a flat array of acts
+    allActs = parseClashfinderJSON(rawClashfinderData);
+    updateFooterTimestamp(rawClashfinderData);
+    
     populateStageDropdown();
     renderSchedule();
   } catch (err) {
     console.error('Error loading schedule:', err);
-    actListEl.innerHTML = `<p class="error">Failed to load schedule. Ensure data.json exists.</p>`;
+    if (actListEl) {
+      actListEl.innerHTML = `<p class="error">Failed to load schedule. Ensure ./data/gm2025.json exists.</p>`;
+    }
   }
+}
+
+// --- CLASHFINDER PARSER ---
+function parseClashfinderJSON(cfData) {
+  const acts = [];
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  const locations = cfData?.locations || cfData?.event?.locations || [];
+
+  locations.forEach(location => {
+    const stageName = location.name;
+    const events = location.events || location.acts || [];
+
+    events.forEach(event => {
+      const actName = event.name || event.act || 'TBA';
+      const startDateTime = event.start || '';
+      const endDateTime = event.end || '';
+
+      // Extract Day of Week from start timestamp (YYYY-MM-DD HH:MM)
+      let dayName = 'Unknown';
+      if (startDateTime) {
+        const dateObj = new Date(startDateTime.replace(' ', 'T'));
+        if (!isNaN(dateObj.getTime())) {
+          dayName = daysOfWeek[dateObj.getDay()];
+        }
+      }
+
+      // Format Start/End times to HH:MM format
+      const startTime = startDateTime.split(' ')[1] || startDateTime;
+      const endTime = endDateTime.split(' ')[1] || endDateTime;
+
+      // Construct a unique ID for local storage tracking
+      const actId = event.mbId 
+        ? `mbid-${event.mbId}` 
+        : `${dayName}-${stageName}-${startTime}-${actName}`
+            .toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^a-z0-9\-]/g, '');
+
+      acts.push({
+        id: actId,
+        act: actName,
+        stage: stageName,
+        day: dayName,
+        start: startTime,
+        end: endTime,
+        rawStart: startDateTime,
+        rawEnd: endDateTime
+      });
+    });
+  });
+
+  return acts;
 }
 
 // --- 4. RENDER LOGIC ---
 function renderSchedule() {
-  // Filter dataset based on active UI states
   const filtered = allActs.filter(act => {
     const actId = getActId(act);
 
-    const actDayVal = act.date || act.day; 
-    const matchesDay = currentDate === 'All' || actDayVal === currentDate;
+    const matchesDay = currentDate === 'All' || act.day.toLowerCase() === currentDate.toLowerCase();
     const matchesStage = currentStage === 'All' || act.stage === currentStage;
     const matchesSearch = act.act.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFav = !showFavoritesOnly || favorites.has(actId);
@@ -98,8 +146,8 @@ function renderSchedule() {
   };
 
   filtered.sort((a, b) => {
-    const dayA = String(a.date || a.day || '').trim().toLowerCase();
-    const dayB = String(b.date || b.day || '').trim().toLowerCase();
+    const dayA = String(a.day || '').trim().toLowerCase();
+    const dayB = String(b.day || '').trim().toLowerCase();
 
     const rankA = dayOrder[dayA] || 999;
     const rankB = dayOrder[dayB] || 999;
@@ -120,51 +168,50 @@ function renderSchedule() {
   }
 
   actListEl.innerHTML = filtered.map(act => {
-  const actId = getActId(act);
-  const isFav = favorites.has(actId);
-  const isSeen = seenActs.has(actId);
-  
-  // Format day string (e.g., "Thursday" -> "Thu")
-  const actDay = (act.date || act.day || '');
-  const shortDay = actDay.substring(0, 3);
+    const actId = getActId(act);
+    const isFav = favorites.has(actId);
+    const isSeen = seenActs.has(actId);
+    
+    const actDay = (act.day || '');
+    const shortDay = actDay.substring(0, 3);
 
-  return `
-    <div class="list-group-item d-flex align-items-center px-1 py-2 gap-2 overflow-hidden ${isSeen ? 'bg-success-subtle' : ''} ${isFav ? 'border border-2 border-warning rounded' : 'border border-bottom rounded'}">
-      
-      <div class="flex-shrink-0 d-flex flex-column align-items-start gap-1">
-        ${currentDate === 'All' ? `<span class="badge ${isSeen ? 'border border-1 border-secondary rounded bg-primary-subtle' : 'bg-primary-subtle'} text-primary fw-bold px-2 py-1 w-100">${escapeHtml(shortDay)}</span>` : ''}
+    return `
+      <div class="list-group-item d-flex align-items-center px-1 py-2 gap-2 overflow-hidden ${isSeen ? 'bg-success-subtle' : ''} ${isFav ? 'border border-2 border-warning rounded' : 'border border-bottom rounded'}">
         
-        <span class="badge ${isSeen ? 'border border-1 border-secondary rounded bg-secondary-subtle' : 'bg-secondary-subtle'} text-body fw-semibold py-1 px-2">
-          ${escapeHtml(act.start)} - ${escapeHtml(act.end)}
-        </span>
-      </div>
-      
-      <div class="flex-grow-1" style="min-width: 0;">
-        <div class="h6 mb-0 text-wrap lh-sm fw-bold text-break" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-          ${escapeHtml(act.act)}
+        <div class="flex-shrink-0 d-flex flex-column align-items-start gap-1">
+          ${currentDate === 'All' ? `<span class="badge ${isSeen ? 'border border-1 border-secondary rounded bg-primary-subtle' : 'bg-primary-subtle'} text-primary fw-bold px-2 py-1 w-100">${escapeHtml(shortDay)}</span>` : ''}
+          
+          <span class="badge ${isSeen ? 'border border-1 border-secondary rounded bg-secondary-subtle' : 'bg-secondary-subtle'} text-body fw-semibold py-1 px-2">
+            ${escapeHtml(act.start)} - ${escapeHtml(act.end)}
+          </span>
         </div>
-        <div class="small text-muted text-truncate mt-1">${escapeHtml(act.stage)}</div>
-      </div>
-      
-      <div class="d-flex gap-1 align-items-center flex-shrink-0">
-        <button class="btn btn-link btn-sm p-1 text-decoration-none" 
-                onclick="toggleSeen('${actId}')" 
-                title="${isSeen ? 'Mark as Unseen' : 'Mark as Seen'}"
-                aria-label="Seen">
-          ${isSeen ? '✅' : '🔲'}
-        </button>
         
-        <button class="btn btn-link btn-sm p-1 fav-btn text-decoration-none ${isFav ? 'text-warning fs-5' : 'text-secondary fs-5'}" 
-                onclick="toggleFavorite('${actId}')" 
-                title="${isFav ? 'Remove Favorite' : 'Add Favorite'}"
-                aria-label="Favorite">
-          ${isFav ? '★' : '⚝'}
-        </button>
-      </div>
+        <div class="flex-grow-1" style="min-width: 0;">
+          <div class="h6 mb-0 text-wrap lh-sm fw-bold text-break" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            ${escapeHtml(act.act)}
+          </div>
+          <div class="small text-muted text-truncate mt-1">${escapeHtml(act.stage)}</div>
+        </div>
+        
+        <div class="d-flex gap-1 align-items-center flex-shrink-0">
+          <button class="btn btn-link btn-sm p-1 text-decoration-none" 
+                  onclick="toggleSeen('${actId}')" 
+                  title="${isSeen ? 'Mark as Unseen' : 'Mark as Seen'}"
+                  aria-label="Seen">
+            ${isSeen ? '✅' : '🔲'}
+          </button>
+          
+          <button class="btn btn-link btn-sm p-1 fav-btn text-decoration-none ${isFav ? 'text-warning fs-5' : 'text-secondary fs-5'}" 
+                  onclick="toggleFavorite('${actId}')" 
+                  title="${isFav ? 'Remove Favorite' : 'Add Favorite'}"
+                  aria-label="Favorite">
+            ${isFav ? '★' : '⚝'}
+          </button>
+        </div>
 
-    </div>
-  `;
-}).join('');
+      </div>
+    `;
+  }).join('');
 }
 
 // Parse a HH:MM time string into minutes, treating early-morning times (00:00-05:59) as late night
@@ -213,13 +260,11 @@ window.toggleSeen = function(actId) {
 
 // --- 6. EVENT LISTENERS ---
 function setupEventListeners() {
-  // Check the radio button that matches our initial currentDate ('All', 'Thursday', etc.)
   const activeRadio = document.querySelector(`input[name="day-radio"][value="${currentDate}"]`);
   if (activeRadio) {
     activeRadio.checked = true;
   }
 
-  // Attach change listeners to all day radios
   const dayRadioEls = Array.from(document.querySelectorAll('input[name="day-radio"]'));
   dayRadioEls.forEach(radio => radio.addEventListener('change', (e) => {
     if (e.target.checked) {
@@ -228,7 +273,6 @@ function setupEventListeners() {
     }
   }));
 
-  // Search Input
   if (searchInputEl) {
     searchInputEl.addEventListener('input', (e) => {
       searchQuery = e.target.value;
@@ -236,16 +280,11 @@ function setupEventListeners() {
     });
   }
 
-// Favorites-Only Toggle Button
-  // Favorites-Only Toggle Button
   if (favToggleBtn) {
     favToggleBtn.addEventListener('click', () => {
       showFavoritesOnly = !showFavoritesOnly;
-      
-      // Update icon
       favToggleBtn.innerText = showFavoritesOnly ? '★' : '⚝';
 
-      // Toggle styles: Transparent Outline -> Solid Yellow
       if (showFavoritesOnly) {
         favToggleBtn.classList.add('btn-warning', 'text-dark');
       } else {
@@ -256,15 +295,11 @@ function setupEventListeners() {
     });
   }
 
-  // Seen-Only Toggle Button
   if (seenToggleBtn) {
     seenToggleBtn.addEventListener('click', () => {
       showSeenOnly = !showSeenOnly;
-
-      // Update icon
       seenToggleBtn.innerText = showSeenOnly ? '✅' : '🔲';
 
-      // Toggle styles: Outline (transparent bg) -> Solid Green
       if (showSeenOnly) {
         seenToggleBtn.classList.add('btn-success', 'text-white');
       } else {
@@ -274,9 +309,7 @@ function setupEventListeners() {
       renderSchedule();
     });
   }
- 
 
-  // Theme toggle
   if (themeToggleBtn) {
     themeToggleBtn.addEventListener('click', () => {
       const current = document.documentElement.getAttribute('data-bs-theme') || 'dark';
@@ -284,10 +317,19 @@ function setupEventListeners() {
       applyTheme(next);
     });
   }
+
+  const scrollTopBtn = document.getElementById('scroll-top-btn');
+  
+  if (scrollTopBtn) {
+    scrollTopBtn.addEventListener('click', (e) => {
+      e.preventDefault(); // Prevent any default anchor navigation
+      scrollToTop();
+    });
+  }
+
 }
 
 function populateStageDropdown() {
-  // 1. Define your exact desired order (case-insensitive mapping)
   const customOrder = [
     'mountain stage',
     'far out',
@@ -298,22 +340,18 @@ function populateStageDropdown() {
     'cinedrome'
   ];
 
-  // 2. Extract unique stages from dataset
   const rawStages = [...new Set(allActs.map(a => a.stage))];
 
-  // 3. Sort stages using customOrder indexes
   const sortedStages = rawStages.sort((a, b) => {
     const indexA = customOrder.indexOf(String(a).toLowerCase().trim());
     const indexB = customOrder.indexOf(String(b).toLowerCase().trim());
 
-    // If a stage isn't in customOrder list, place it at the end
     const rankA = indexA === -1 ? 999 : indexA;
     const rankB = indexB === -1 ? 999 : indexB;
 
     return rankA - rankB;
   });
 
-  // Ensure "All" is always first
   const stages = sortedStages.filter(s => String(s).toLowerCase() !== 'all');
 
   const idAll = 'stage-all';
@@ -351,7 +389,6 @@ function populateStageDropdown() {
   }));
 }
 
-// Helper to escape special characters in HTML strings
 function escapeHtml(str) {
   const s = String(str == null ? '' : str);
   return s.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
@@ -372,6 +409,93 @@ function initTheme() {
   const saved = localStorage.getItem(THEME_KEY);
   const initial = (saved === 'light' || saved === 'dark') ? saved : 'light';
   applyTheme(initial);
+}
+
+// Function to ensure footer timestamp is always displayed
+function updateFooterTimestamp(data) {
+  const lastUpdatedEl = document.getElementById('data-last-updated');
+  if (!lastUpdatedEl) return;
+
+  // Extract modification time from JSON
+  const modifiedTime = data?.lastEdit || data?.modified;
+
+  if (modifiedTime) {
+    lastUpdatedEl.textContent = `Source Last Modified: ${modifiedTime}`;
+  } else {
+    // Fallback if neither property exists in the JSON
+    lastUpdatedEl.textContent = `Source Last Modified: Unknown`;
+  }
+}
+
+// Update your main fetch / initialization logic
+async function loadScheduleData() {
+  try {
+    const response = await fetch('./data/gm2025.json');
+    const rawClashfinderData = await response.json();
+
+    // Display the lastEdit/modified date in the footer
+    updateFooterTimestamp(rawClashfinderData);
+
+    allActs = parseClashfinderJSON(rawClashfinderData);
+    renderSchedule();
+  } catch (err) {
+    console.error('Error loading schedule:', err);
+  }
+}
+
+// Update your Refresh Cache event listener
+const refreshCacheBtn = document.getElementById('refresh-cache-btn');
+if (refreshCacheBtn) {
+  refreshCacheBtn.addEventListener('click', async () => {
+    try {
+      refreshCacheBtn.disabled = true;
+      refreshCacheBtn.innerHTML = `⏳ <span>Updating...</span>`;
+
+      // 1. Clear caches if Service Worker is active
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+      }
+
+      // 2. Fetch fresh JSON bypassing browser cache
+      const response = await fetch(`./data/gm2025.json?t=${Date.now()}`, { cache: 'reload' });
+      const rawClashfinderData = await response.json();
+
+      // Update footer timestamp with the newly fetched data
+      updateFooterTimestamp(rawClashfinderData);
+
+      allActs = parseClashfinderJSON(rawClashfinderData);
+      renderSchedule();
+
+      refreshCacheBtn.innerHTML = `✅ <span>Updated!</span>`;
+      setTimeout(() => {
+        refreshCacheBtn.disabled = false;
+        refreshCacheBtn.innerHTML = `🔄 <span>Refresh Data</span>`;
+      }, 2000);
+
+    } catch (err) {
+      console.error('Failed to refresh data:', err);
+      refreshCacheBtn.innerHTML = `❌ <span>Error</span>`;
+      setTimeout(() => {
+        refreshCacheBtn.disabled = false;
+        refreshCacheBtn.innerHTML = `🔄 <span>Refresh Data</span>`;
+      }, 2000);
+    }
+  });
+}
+
+// Reliable scroll-to-top helper
+function scrollToTop() {
+  // Try smooth scrolling on window first
+  window.scrollTo({
+    top: 0,
+    left: 0,
+    behavior: 'smooth'
+  });
+
+  // Fallback for custom scroll containers / body overflow
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
 }
 
 function initServiceWorker() {

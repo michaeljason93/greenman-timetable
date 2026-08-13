@@ -2,32 +2,42 @@
 const fs = require('fs');
 const path = require('path');
 
-// 1. Read secrets securely from environment variables
+// 1. Read secrets / environment variables directly
 const username = process.env.CLASHFINDER_USERNAME;
 const publicKey = process.env.CLASHFINDER_PUBLIC_KEY;
 const eventId = 'gm2026'; // Your Clashfinder event ID
 
 if (!username || !publicKey) {
-  console.error('Error: Missing CLASHFINDER_USERNAME or CLASHFINDER_PRIVATE_KEY environment variables.');
+  console.error('Error: Missing CLASHFINDER_USERNAME or CLASHFINDER_PUBLIC_KEY environment variables.');
   process.exit(1);
 }
 
-// 3. Construct API URL with authentication parameters
-const API_URL = `https://clashfinder.com/data/event/${eventId}.json?authUsername=${encodeURIComponent(username)}&authPublicKey=${publicKey}`;
+// 2. Build API URL using the directly passed public key
+const API_URL = `https://clashfinder.com/data/event/${eventId}.json?authUsername=${encodeURIComponent(username.trim())}&authPublicKey=${publicKey.trim()}`;
 
 async function updateSchedule() {
   try {
-    console.log(`Fetching schedule securely for event: ${eventId}`);
-    const response = await fetch(API_URL);
+    console.log(`Fetching schedule for event: ${eventId}...`);
 
-    if (!response.ok) {
-      throw new Error(`Clashfinder API returned status ${response.status}`);
+    // Must include User-Agent header so Cloudflare/Clashfinder doesn't block GitHub Actions
+    const response = await fetch(API_URL, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    });
+
+    // Handle non-JSON / HTML error responses cleanly
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const responseText = await response.text();
+      console.error('API Error Response (HTML returned):', responseText.slice(0, 300));
+      throw new Error(`Expected JSON but received ${contentType}. Check that your event ID and authentication parameters are valid.`);
     }
 
     const cfData = await response.json();
 
     // -------------------------------------------------------------
-    // 1. READ EXISTING DATA TO COMPARE (FOR STATUS FLAGGING)
+    // 3. READ EXISTING DATA TO COMPARE (FOR STATUS FLAGGING)
     // -------------------------------------------------------------
     const outputPath = path.join(__dirname, '../data.json');
     let previousActsMap = new Map();
@@ -35,18 +45,18 @@ async function updateSchedule() {
     if (fs.existsSync(outputPath)) {
       try {
         const prevData = JSON.parse(fs.readFileSync(outputPath, 'utf-8'));
-        prevData.forEach(act => previousActsMap.set(act.id, act));
+        prevData.forEach(act => {
+          if (act.id) previousActsMap.set(act.id, act);
+        });
       } catch (err) {
         console.warn('Could not parse existing data.json, starting fresh.');
       }
     }
 
     // -------------------------------------------------------------
-    // 2. FLATTEN / TRANSFORM CLASHFINDER DATA
+    // 4. TRANSFORM CLASHFINDER DATA
     // -------------------------------------------------------------
     const extractedActs = [];
-    
-    // Clashfinder organizes data under event.locations -> events
     const locations = cfData?.event?.locations || cfData?.locations || [];
 
     locations.forEach(location => {
@@ -54,24 +64,19 @@ async function updateSchedule() {
       const actsOnStage = location.events || location.acts || [];
 
       actsOnStage.forEach(event => {
-        // Extract basic details
-        const id = event.id;
-        const name = event.name || event.act;
+        // Use Clashfinder native ID format (cf-<id>)
+        const id = event.id ? `cf-${event.id}` : `${stageName}-${event.name}-${event.start}`.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const name = event.name || event.act || 'TBA';
         const start = event.start;
         const end = event.end;
-        
-        // Extract date (e.g. "2026-08-21")
         const date = start ? start.split(' ')[0] : '';
 
-        // Check against previous run
         const prev = previousActsMap.get(id);
         let status = 'normal';
 
         if (!prev) {
-          // Act was not present in the last data.json run
           status = 'new';
         } else if (prev.start !== start || prev.end !== end || prev.stage !== stageName) {
-          // Act timing or stage shifted
           status = 'updated';
         }
 
@@ -82,7 +87,7 @@ async function updateSchedule() {
           date,
           start,
           end,
-          status, // 'normal' | 'new' | 'updated'
+          status,
           updatedAt: status !== 'normal' ? new Date().toISOString() : (prev?.updatedAt || null)
         });
       });
@@ -91,20 +96,12 @@ async function updateSchedule() {
     // Sort chronologically by start time
     extractedActs.sort((a, b) => new Date(a.start) - new Date(b.start));
 
-    // -------------------------------------------------------------
-    // 3. WRITE TO DATA.JSON
-    // -------------------------------------------------------------
-    fs.writeFileSync(
-      outputPath, 
-      JSON.stringify(extractedActs, null, 2), 
-      'utf-8'
-    );
+    // Write output to data.json
+    fs.writeFileSync(outputPath, JSON.stringify(extractedActs, null, 2), 'utf-8');
+    console.log(`Successfully processed ${extractedActs.length} acts and updated data.json`);
 
-    console.log(`Successfully processed ${extractedActs.length} acts and written to data.json`);
-
-    console.log('Successfully updated data.json');
   } catch (err) {
-    console.error('Failed to sync Clashfinder schedule:', err);
+    console.error('Failed to sync Clashfinder schedule:', err.message);
     process.exit(1);
   }
 }

@@ -20,30 +20,39 @@ async function updateSchedule() {
     
     browser = await puppeteer.launch({
       headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-blink-features=AutomationControlled' // Helps bypass bot checks
+      ]
     });
 
     const page = await browser.newPage();
 
-    // Set a standard User-Agent
+    // Set standard browser user agent
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
 
-    // Step 1: Visit main Clashfinder page first to establish cookies / pass CAPTCHA
-    await page.goto('https://clashfinder.com', {
+    // Navigate directly to the API URL and wait for SiteGround redirects/challenges to resolve
+    console.log(`Navigating to Clashfinder API...`);
+    const response = await page.goto(API_URL, {
       waitUntil: 'networkidle2',
-      timeout: 30000
+      timeout: 45000
     });
 
-    // Step 2: Perform fetch directly inside the browser context to get clean JSON
-    const cfData = await page.evaluate(async (url) => {
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return await res.json();
-    }, API_URL);
+    if (response && response.status() >= 400) {
+      throw new Error(`HTTP Error Status ${response.status()}`);
+    }
 
-    console.log('Successfully retrieved clean JSON via Puppeteer browser fetch!');
+    // Extract text content directly from the <pre> tag (where Chrome wraps raw JSON) or body
+    const rawText = await page.evaluate(() => {
+      const pre = document.querySelector('pre');
+      return pre ? pre.textContent : document.body.textContent;
+    });
+
+    // Parse the extracted JSON string
+    const cfData = JSON.parse(rawText.trim());
+
+    console.log('Successfully retrieved clean JSON via Puppeteer!');
 
     // -------------------------------------------------------------
     // PROCESS DATA AND WRITE TO DATA.JSON
@@ -70,8 +79,13 @@ async function updateSchedule() {
       const actsOnStage = location.events || location.acts || [];
 
       actsOnStage.forEach(event => {
-        const id = event.id ? `cf-${event.id}` : `${stageName}-${event.name}-${event.start}`.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        const name = event.name || event.act || 'TBA';
+        const actName = event.name || event.act || event.short || 'TBA';
+        const shortName = event.short || actName;
+        const rawId = event.mbid || event.id || `${stageName}-${shortName}-${event.start}`;
+        const id = event.mbid 
+          ? `mbid-${event.mbid}` 
+          : `cf-${rawId}`.toLowerCase().replace(/[^a-z0-9-]+/g, '-');
+
         const start = event.start;
         const end = event.end;
         const date = start ? start.split(' ')[0] : '';

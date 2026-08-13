@@ -26,48 +26,40 @@ async function updateSchedule() {
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-gpu',
-        '--window-size=1920,1080'
+        '--disable-blink-features=AutomationControlled'
       ]
     });
 
     const page = await browser.newPage();
 
-    // Block heavy resources so networkidle0 resolves quickly
-    await page.setRequestInterception(true);
-    page.on('request', (req) => {
-      const resourceType = req.resourceType();
-      if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
-        req.abort();
-      } else {
-        req.continue();
-      }
-    });
-
     await page.setUserAgent(
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
     );
 
-    console.log('Navigating directly to API endpoint...');
+    console.log('Executing direct in-browser fetch request...');
     
-    // Valid Puppeteer option: networkidle0 resolves when network connections drop to 0
-    await page.goto(API_URL, {
-      waitUntil: 'networkidle0',
-      timeout: 45000
-    });
+    // Navigate to a blank page first so we don't trigger SiteGround page load timeouts
+    await page.goto('about:blank');
 
-    // Extract raw text content from the DOM
-    const rawText = await page.evaluate(() => {
-      const pre = document.querySelector('pre');
-      return pre ? pre.textContent : document.body.textContent;
-    });
+    // Execute the fetch request natively within the stealth browser context
+    const responseData = await page.evaluate(async (url) => {
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json, text/plain, */*',
+          'Accept-Language': 'en-US,en;q=0.9'
+        }
+      });
+      if (!res.ok) {
+        throw new Error(`HTTP Error Status: ${res.status}`);
+      }
+      return await res.json();
+    }, API_URL);
 
-    if (!rawText || !rawText.trim().startsWith('{')) {
-      throw new Error(`Failed to retrieve valid JSON. Received page content preview:\n${rawText.slice(0, 300)}`);
+    if (!responseData || typeof responseData !== 'object') {
+      throw new Error('Received invalid data from API endpoint.');
     }
 
-    const cfData = JSON.parse(rawText.trim());
     console.log('Successfully retrieved and parsed Clashfinder schedule data!');
 
     // -------------------------------------------------------------
@@ -88,7 +80,7 @@ async function updateSchedule() {
     }
 
     const extractedActs = [];
-    const locations = cfData?.event?.locations || cfData?.locations || [];
+    const locations = responseData?.event?.locations || responseData?.locations || [];
 
     locations.forEach(location => {
       const stageName = location.name;

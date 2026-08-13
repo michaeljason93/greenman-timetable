@@ -5,7 +5,7 @@ const crypto = require('crypto');
 
 // 1. Read secrets securely from environment variables
 const username = process.env.CLASHFINDER_USERNAME;
-const privateKey = process.env.CLASHFINDER_PRIVATE_KEY;
+const publicKey = process.env.CLASHFINDER_PUBLIC_KEY;
 const eventId = 'gm2026'; // Your Clashfinder event ID
 
 if (!username || !privateKey) {
@@ -13,15 +13,8 @@ if (!username || !privateKey) {
   process.exit(1);
 }
 
-// 2. Generate the required Clashfinder SHA-256 authPublicKey
-// Format: sha256(username + privateKey)
-const authPublicKey = crypto
-  .createHash('sha256')
-  .update(`${username}${privateKey}`)
-  .digest('hex');
-
 // 3. Construct API URL with authentication parameters
-const API_URL = `https://clashfinder.com/data/event/${eventId}.json?authUsername=${encodeURIComponent(username)}&authPublicKey=${authPublicKey}`;
+const API_URL = `https://clashfinder.com/data/event/${eventId}.json?authUsername=${encodeURIComponent(username)}&authPublicKey=${publicKey}`;
 
 async function updateSchedule() {
   try {

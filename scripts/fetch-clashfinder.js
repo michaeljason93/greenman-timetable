@@ -26,7 +26,8 @@ async function updateSchedule() {
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-blink-features=AutomationControlled'
+        '--disable-web-security', // Bypasses CORS restrictions on about:blank
+        '--disable-features=IsolateOrigins,site-per-process'
       ]
     });
 
@@ -36,18 +37,24 @@ async function updateSchedule() {
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
     );
 
-    console.log('Executing direct in-browser fetch request...');
+    console.log('Navigating to origin domain to establish context...');
     
-    // Navigate to a blank page first so we don't trigger SiteGround page load timeouts
-    await page.goto('about:blank');
+    // Navigate to the Clashfinder domain base so the origin matches the API
+    await page.goto('https://clashfinder.com/robots.txt', {
+      waitUntil: 'domcontentloaded',
+      timeout: 15000
+    }).catch(() => {
+      console.warn('robots.txt load timed out, proceeding with fetch fallback...');
+    });
 
-    // Execute the fetch request natively within the stealth browser context
+    console.log('Executing in-browser fetch request...');
+
+    // Fetch directly within page context
     const responseData = await page.evaluate(async (url) => {
       const res = await fetch(url, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json, text/plain, */*',
-          'Accept-Language': 'en-US,en;q=0.9'
+          'Accept': 'application/json, text/plain, */*'
         }
       });
       if (!res.ok) {
@@ -57,7 +64,7 @@ async function updateSchedule() {
     }, API_URL);
 
     if (!responseData || typeof responseData !== 'object') {
-      throw new Error('Received invalid data from API endpoint.');
+      throw new Error('Received invalid data payload.');
     }
 
     console.log('Successfully retrieved and parsed Clashfinder schedule data!');

@@ -16,46 +16,50 @@ const API_URL = `https://clashfinder.com/data/event/${eventId}.json?authUsername
 async function updateSchedule() {
   let browser;
   try {
-    console.log(`Launching headless browser to bypass CAPTCHA for event: ${eventId}...`);
+    console.log(`Launching headless browser for event: ${eventId}...`);
     
     browser = await puppeteer.launch({
       headless: 'new',
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
-        '--disable-blink-features=AutomationControlled' // Helps bypass bot checks
+        '--disable-blink-features=AutomationControlled'
       ]
     });
 
     const page = await browser.newPage();
 
     // Set standard browser user agent
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+    );
 
-    // Navigate directly to the API URL and wait for SiteGround redirects/challenges to resolve
-    console.log(`Navigating to Clashfinder API...`);
-    const response = await page.goto(API_URL, {
-      waitUntil: 'networkidle2',
-      timeout: 45000
+    console.log(`Navigating to API endpoint...`);
+    
+    // Use domcontentloaded so background tracking connections don't hang execution
+    await page.goto(API_URL, {
+      waitUntil: 'domcontentloaded',
+      timeout: 30000
     });
 
-    if (response && response.status() >= 400) {
-      throw new Error(`HTTP Error Status ${response.status()}`);
-    }
+    // Wait 4 seconds for SiteGround CAPTCHA meta-refresh/redirects to execute
+    await new Promise(resolve => setTimeout(resolve, 4000));
 
-    // Extract text content directly from the <pre> tag (where Chrome wraps raw JSON) or body
+    // Extract text from <pre> (Chrome's default JSON viewer wrapper) or <body>
     const rawText = await page.evaluate(() => {
       const pre = document.querySelector('pre');
       return pre ? pre.textContent : document.body.textContent;
     });
 
-    // Parse the extracted JSON string
-    const cfData = JSON.parse(rawText.trim());
+    if (!rawText || !rawText.trim().startsWith('{')) {
+      throw new Error(`Failed to retrieve valid JSON string. Received page content:\n${rawText.slice(0, 200)}`);
+    }
 
-    console.log('Successfully retrieved clean JSON via Puppeteer!');
+    const cfData = JSON.parse(rawText.trim());
+    console.log('Successfully parsed Clashfinder schedule data!');
 
     // -------------------------------------------------------------
-    // PROCESS DATA AND WRITE TO DATA.JSON
+    // PROCESS DATA & WRITE TO DATA.JSON
     // -------------------------------------------------------------
     const outputPath = path.join(__dirname, '../data.json');
     let previousActsMap = new Map();
@@ -81,6 +85,8 @@ async function updateSchedule() {
       actsOnStage.forEach(event => {
         const actName = event.name || event.act || event.short || 'TBA';
         const shortName = event.short || actName;
+
+        // Unique ID resolution with fallbacks
         const rawId = event.mbid || event.id || `${stageName}-${shortName}-${event.start}`;
         const id = event.mbid 
           ? `mbid-${event.mbid}` 
@@ -89,6 +95,7 @@ async function updateSchedule() {
         const start = event.start;
         const end = event.end;
         const date = start ? start.split(' ')[0] : '';
+        const mbid = event.mbid || null;
 
         const prev = previousActsMap.get(id);
         let status = 'normal';
@@ -101,7 +108,9 @@ async function updateSchedule() {
 
         extractedActs.push({
           id,
-          name,
+          mbid,
+          name: actName,
+          shortName,
           stage: stageName,
           date,
           start,

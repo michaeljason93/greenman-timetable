@@ -358,14 +358,27 @@ function setupEventListeners() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const rawClashfinderData = await response.json();
+        
+        // Check if the data has actually changed by comparing timestamps
+        const modifiedTime = rawClashfinderData?.lastEdit || rawClashfinderData?.modified;
+        const previousModTime = localStorage.getItem(STORAGE_KEY_LAST_MOD);
+        
+        const hasChanged = previousModTime !== modifiedTime;
+
+        // Update footer timestamp normally (so the Last Updated label always stays accurate)
         updateFooterTimestamp(rawClashfinderData);
         allActs = parseClashfinderJSON(rawClashfinderData);
         renderSchedule();
 
-        refreshCacheBtn.innerHTML = `✅ <span>Updated!</span>`;
+        if (hasChanged) {
+          refreshCacheBtn.innerHTML = `✅ <span>Updated!</span>`;
+        } else {
+          // Flash "Up to Date" on the button because nothing changed
+          refreshCacheBtn.innerHTML = `✨ <span>Up to Date</span>`;
+        }
       } catch (err) {
         console.warn('Network unavailable, keeping cached data:', err);
-        refreshCacheBtn.innerHTML = `⚠️ <span>Offline (Using Saved Data)</span>`;
+        refreshCacheBtn.innerHTML = `⚠️ <span>Offline</span>`;
       } finally {
         setTimeout(() => {
           refreshCacheBtn.disabled = false;
@@ -374,6 +387,8 @@ function setupEventListeners() {
       }
     });
   }
+
+
 }
 
 function populateStageDropdown() {
@@ -472,23 +487,17 @@ function updateFooterTimestamp(data) {
   if (modifiedTime) {
     const d = new Date(modifiedTime.replace(' ', 'T'));
     if (!isNaN(d.getTime())) {
-      const weekday = d.toLocaleDateString('en-US', { weekday: 'short' }); // "Fri"
-      const dayNum = d.getDate(); // 15
-      const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }); // "07:50"
+      const weekday = d.toLocaleDateString('en-US', { weekday: 'short' }); 
+      const dayNum = d.getDate(); 
+      const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }); 
       
       const formattedDate = `${weekday} ${dayNum}${getOrdinalSuffix(dayNum)} ${time}`;
       
-      // Retrieve the previously stored modification time
-      const previousModTime = localStorage.getItem(STORAGE_KEY_LAST_MOD);
-
-      if (previousModTime === modifiedTime) {
-        // Data has not changed since last check
-        lastUpdatedEl.innerHTML = `<span>Up to date</span>`;
-      } else {
-        // New data detected! Save the new modification time and display it
-        localStorage.setItem(STORAGE_KEY_LAST_MOD, modifiedTime);
-        lastUpdatedEl.innerHTML = `<span>Updated:<br/>${formattedDate}</span>`;
-      }
+      // Save it locally for the comparison logic in the refresh button
+      localStorage.setItem(STORAGE_KEY_LAST_MOD, modifiedTime);
+      
+      // Always show the last modified date label cleanly
+      lastUpdatedEl.innerHTML = `<span>Last updated:<br/>${formattedDate}</span>`;
       return;
     }
   }

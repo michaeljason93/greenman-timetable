@@ -9,6 +9,7 @@ let showSeenOnly = false; // Filter by seen acts
 // Load stored favorite & seen act IDs from browser storage (Offline Ready)
 const STORAGE_KEY_FAVS = 'gm2026_favorites';
 const STORAGE_KEY_SEEN = 'gm2026_seen';
+const STORAGE_KEY_LAST_MOD = 'gm2026_last_modified';
 
 let favorites = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_FAVS) || '[]'));
 let seenActs = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_SEEN) || '[]'));
@@ -222,7 +223,7 @@ function renderSchedule() {
     const shortDay = (act.day || '').substring(0, 3);
 
     return `
-      <div class="list-group-item d-flex align-items-center px-1 py-2 gap-2 overflow-hidden ${isSeen ? 'bg-success-subtle' : ''} ${isFav ? 'border border-2 border-warning rounded' : 'border border-bottom rounded'}">
+      <div class="list-group-item d-flex align-items-center px-1 py-2 gap-2 ${isSeen ? 'bg-success-subtle' : ''} ${isFav ? 'border border-2 border-warning rounded' : 'border border-bottom rounded'}">
         
        <div class="flex-shrink-0 d-flex flex-column align-items-start gap-1">
         <span class="badge ${isSeen ? 'border border-1 border-secondary rounded bg-primary-subtle' : 'bg-primary-subtle'} text-primary fw-bold px-2 py-1 w-100">
@@ -235,10 +236,10 @@ function renderSchedule() {
       </div>
              
         <div class="flex-grow-1" style="min-width: 0;">
-          <div class="h6 mb-0 text-wrap lh-sm fw-bold text-break" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+          <div class="h6 mb-0 text-wrap lh-sm fw-bold text-break">
             ${escapeHtml(act.act)}
           </div>
-          <div class="small text-muted text-truncate mt-1">${escapeHtml(act.stage)}</div>
+          <div class="small text-muted text-wrap mt-1">${escapeHtml(act.stage)}</div>
         </div>
         
         <div class="d-flex gap-1 align-items-center flex-shrink-0">
@@ -469,7 +470,6 @@ function updateFooterTimestamp(data) {
   const modifiedTime = data?.lastEdit || data?.modified;
 
   if (modifiedTime) {
-    // Attempt to parse and format timestamp like "Fri 15th 07:50"
     const d = new Date(modifiedTime.replace(' ', 'T'));
     if (!isNaN(d.getTime())) {
       const weekday = d.toLocaleDateString('en-US', { weekday: 'short' }); // "Fri"
@@ -477,12 +477,22 @@ function updateFooterTimestamp(data) {
       const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }); // "07:50"
       
       const formattedDate = `${weekday} ${dayNum}${getOrdinalSuffix(dayNum)} ${time}`;
-      lastUpdatedEl.innerHTML = `<span>Last updated:<br/>${formattedDate}</span>`;
+      
+      // Retrieve the previously stored modification time
+      const previousModTime = localStorage.getItem(STORAGE_KEY_LAST_MOD);
+
+      if (previousModTime === modifiedTime) {
+        // Data has not changed since last check
+        lastUpdatedEl.innerHTML = `<span>Up to date</span>`;
+      } else {
+        // New data detected! Save the new modification time and display it
+        localStorage.setItem(STORAGE_KEY_LAST_MOD, modifiedTime);
+        lastUpdatedEl.innerHTML = `<span>Updated:<br/>${formattedDate}</span>`;
+      }
       return;
     }
   }
 
-  // Fallback if timestamp is missing or couldn't be parsed
   lastUpdatedEl.innerHTML = `<span>Last updated: Unknown</span>`;
 }
 

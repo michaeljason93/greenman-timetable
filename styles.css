@@ -8,7 +8,6 @@
   --time-bg: #2dd4bf;
   --time-color: #042026;
 
-  /* --- Option 1: Mountain & Valley Colors (Light Mode Defaults) --- */
   --thursday-bg: #2d4a3e; --thursday-text: #ffffff;
   --friday-bg:   #1e5128; --friday-text:   #ffffff;
   --saturday-bg: #b85d19; --saturday-text: #ffffff;
@@ -16,7 +15,6 @@
   --monday-bg:   #4f5d75; --monday-text:   #ffffff;
 }
 
-/* Basic page layout */
 body{
   margin:0;
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
@@ -27,7 +25,6 @@ body{
 .navbar{ background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent); }
 .container{ max-width:980px; }
 
-/* Light theme overrides */
 [data-bs-theme="light"]{
   --bg: #f8fafc;
   --card: #ffffff;
@@ -37,7 +34,6 @@ body{
   --text: #0f1720;
 }
 
-/* Dark theme overrides for Mountain & Valley colors */
 [data-bs-theme="dark"] {
   --thursday-bg: #1f332a; --thursday-text: #a3e4d7;
   --friday-bg:   #14361b; --friday-text:   #abebc6;
@@ -63,17 +59,11 @@ body{
   border-right: 2px solid var(--bs-warning) !important;
 }
 
-
-/* ==========================================================
-   TOP FILTER BUTTONS (Radio Buttons)
-   Transparent when inactive, colored using variables when checked
-   ========================================================== */
-
-.btn-check + .day-thursday,
-.btn-check + .day-friday,
-.btn-check + .day-saturday,
-.btn-check + .day-sunday,
-.btn-check + .day-monday {
+input.btn-check + label.day-thursday,
+input.btn-check + label.day-friday,
+input.btn-check + label.day-saturday,
+input.btn-check + label.day-sunday,
+input.btn-check + label.day-monday {
   background-color: transparent !important;
   color: var(--bs-body-color) !important;
   border-color: var(--bs-border-color) !important;
@@ -85,23 +75,16 @@ input#day-saturday:checked + label.day-saturday { background-color: var(--saturd
 input#day-sunday:checked + label.day-sunday     { background-color: var(--sunday-bg) !important; color: var(--sunday-text) !important; border-color: var(--sunday-bg) !important; }
 input#day-monday:checked + label.day-monday     { background-color: var(--monday-bg) !important; color: var(--monday-text) !important; border-color: var(--monday-bg) !important; }
 
-
-/* ==========================================================
-   ACT CARDS: Day badges ALWAYS show their mountain colors
-   ========================================================== */
-
 .card .day-thursday { background-color: var(--thursday-bg) !important; color: var(--thursday-text) !important; }
 .card .day-friday   { background-color: var(--friday-bg) !important; color: var(--friday-text) !important; }
 .card .day-saturday { background-color: var(--saturday-bg) !important; color: var(--saturday-text) !important; }
 .card .day-sunday   { background-color: var(--sunday-bg) !important; color: var(--sunday-text) !important; }
 .card .day-monday   { background-color: var(--monday-bg) !important; color: var(--monday-text) !important; }
 
-
 .empty-state{ padding:40px; text-align:center; color:var(--muted); }
 
 .spinner-border{ width:2rem; height:2rem; border-width:0.2rem; }
 
-/* Small responsive tweaks */
 @media (max-width:640px){
   .act-name{ font-size:0.95rem; }
 }

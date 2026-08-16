@@ -51,6 +51,26 @@ body{
   border-right: 2px solid var(--bs-warning) !important;
 }
 
+/* Custom Day Badge & Radio Color Themes */
+/* Thursday: Teal */
+.day-thursday { background-color: rgba(13, 202, 240, 0.15) !important; color: #0dcaf0 !important; border-color: #0dcaf0 !important; }
+[data-bs-theme="dark"] .day-thursday { background-color: rgba(13, 202, 240, 0.25) !important; color: #6edff6 !important; }
+
+/* Friday: Purple */
+.day-friday { background-color: rgba(111, 66, 193, 0.15) !important; color: #6f42c1 !important; border-color: #6f42c1 !important; }
+[data-bs-theme="dark"] .day-friday { background-color: rgba(111, 66, 193, 0.25) !important; color: #b19df1 !important; }
+
+/* Saturday: Orange/Amber */
+.day-saturday { background-color: rgba(253, 126, 20, 0.15) !important; color: #fd7e14 !important; border-color: #fd7e14 !important; }
+[data-bs-theme="dark"] .day-saturday { background-color: rgba(253, 126, 20, 0.25) !important; color: #ffb067 !important; }
+
+/* Sunday: Rose/Pink */
+.day-sunday { background-color: rgba(214, 51, 132, 0.15) !important; color: #d63384 !important; border-color: #d63384 !important; }
+[data-bs-theme="dark"] .day-sunday { background-color: rgba(214, 51, 132, 0.25) !important; color: #f38fb9 !important; }
+
+/* Monday: Slate */
+.day-monday { background-color: rgba(108, 117, 125, 0.15) !important; color: #6c757d !important; border-color: #6c757d !important; }
+[data-bs-theme="dark"] .day-monday { background-color: rgba(108, 117, 125, 0.25) !important; color: #adb5bd !important; }
 
 .fav-btn:focus{ outline:2px solid rgba(45,212,191,0.15); border-radius:6px; }
 

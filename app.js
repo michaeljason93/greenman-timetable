@@ -133,18 +133,20 @@ function renderDaySelector(acts, currentSelectedDay = null) {
   const container = document.getElementById('day-selector-container');
   if (!container) return 'All';
 
-  const uniqueDays = [...new Set(acts.map(a => String(a.day || '').trim().toLowerCase()))]
-    .filter(day => day !== '')
-    .sort((a, b) => (dayOrder[a] || 99) - (dayOrder[b] || 99));
+    uniqueDays.forEach(dayName => {
+    const capitalized = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+    const shortLabel = capitalized.substring(0, 3);
+    const isChecked = activeDay.toLowerCase() === dayName ? 'checked' : '';
+    
+    // Get unique class name (e.g. day-thursday)
+    const dayClass = `day-${dayName.toLowerCase()}`;
 
-  if (uniqueDays.length === 0) return 'All';
+    html += `
+      <input type="radio" class="btn-check" name="day-radio" id="day-${dayName}" value="${capitalized}" ${isChecked}>
+      <label class="btn btn-outline-secondary btn-sm ${dayClass} fw-bold" for="day-${dayName}">${shortLabel}</label>
+    `;
+  });
 
-  const activeDay = currentSelectedDay || getDefaultDate(uniqueDays, acts);
-
-  let html = `
-    <input type="radio" class="btn-check" name="day-radio" id="day-all" value="All" ${activeDay === 'All' ? 'checked' : ''}>
-    <label class="btn btn-outline-success btn-sm" for="day-all">All</label>
-  `;
 
   uniqueDays.forEach(dayName => {
     const capitalized = dayName.charAt(0).toUpperCase() + dayName.slice(1);
@@ -230,6 +232,9 @@ function renderSchedule() {
     const actId = getActId(act);
     const isFav = favorites.has(actId);
     const isSeen = seenActs.has(actId);
+
+    const dayLower = String(act.day || '').trim().toLowerCase();
+    const dayClass = `day-${dayLower}`;
     const shortDay = (act.day || '').substring(0, 3);
 
     const stageLower = String(act.stage || '').toLowerCase().trim();
@@ -239,7 +244,7 @@ function renderSchedule() {
       <div class="list-group-item d-flex align-items-center px-1 py-2 gap-2 ${isSeen ? 'bg-success-subtle' : ''} ${isFav ? 'is-favorite rounded' : 'border border-bottom rounded'}">
 
        <div class="flex-shrink-0 d-flex flex-column align-items-start gap-1">
-        <span class="badge ${isSeen ? 'border border-1 border-secondary rounded bg-primary-subtle' : 'bg-primary-subtle'} text-primary fw-bold px-2 py-1 w-100">
+        <span class="badge ${dayClass} ${isSeen ? 'border border-1 border-secondary rounded bg-primary-subtle' : 'bg-primary-subtle'} text-primary fw-bold px-2 py-1 w-100">
           ${escapeHtml(shortDay)}
         </span>
         

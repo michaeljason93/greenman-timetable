@@ -221,7 +221,7 @@ function renderSchedule() {
     const shortDay = (act.day || '').substring(0, 3);
 
     return `
-      <div class="list-group-item d-flex align-items-center px-1 py-2 gap-2 ${isSeen ? 'bg-success-subtle' : ''} ${isFav ? 'border border-2 border-warning rounded' : 'border border-bottom rounded'}">
+      <div class="list-group-item d-flex align-items-center px-1 py-2 gap-2 ${isSeen ? 'bg-success-subtle' : ''} ${isFav ? 'border-start border-end border-2 border-warning rounded-0' : 'border border-bottom rounded'}">
         
        <div class="flex-shrink-0 d-flex flex-column align-items-start gap-1">
         <span class="badge ${isSeen ? 'border border-1 border-secondary rounded bg-primary-subtle' : 'bg-primary-subtle'} text-primary fw-bold px-2 py-1 w-100">

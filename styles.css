@@ -38,8 +38,8 @@ body{
   --thursday-bg: #1f332a; --thursday-text: #a3e4d7;
   --friday-bg:   #14361b; --friday-text:   #abebc6;
   --saturday-bg: #874412; --saturday-text: #f5cba7;
-  --sunday-bg:   #9a8122; --sunday-text:   #f9e79f;
-  --monday-bg:   #384253; --monday-text:   #d6dbdf;
+  --sunday-bg:   #9a8122; --sunday-text: #f9e79f;
+  --monday-bg:   #384253; --monday-text: #d6dbdf;
 }
 
 .fav-btn{
@@ -75,11 +75,11 @@ input#day-saturday:checked + label.day-saturday { background-color: var(--saturd
 input#day-sunday:checked + label.day-sunday     { background-color: var(--sunday-bg) !important; color: var(--sunday-text) !important; border-color: var(--sunday-bg) !important; }
 input#day-monday:checked + label.day-monday     { background-color: var(--monday-bg) !important; color: var(--monday-text) !important; border-color: var(--monday-bg) !important; }
 
-.card .day-thursday { background-color: var(--thursday-bg) !important; color: var(--thursday-text) !important; }
-.card .day-friday   { background-color: var(--friday-bg) !important; color: var(--friday-text) !important; }
-.card .day-saturday { background-color: var(--saturday-bg) !important; color: var(--saturday-text) !important; }
-.card .day-sunday   { background-color: var(--sunday-bg) !important; color: var(--sunday-text) !important; }
-.card .day-monday   { background-color: var(--monday-bg) !important; color: var(--monday-text) !important; }
+.list-group-item span.day-thursday { background-color: var(--thursday-bg) !important; color: var(--thursday-text) !important; }
+.list-group-item span.day-friday   { background-color: var(--friday-bg) !important; color: var(--friday-text) !important; }
+.list-group-item span.day-saturday { background-color: var(--saturday-bg) !important; color: var(--saturday-text) !important; }
+.list-group-item span.day-sunday   { background-color: var(--sunday-bg) !important; color: var(--sunday-text) !important; }
+.list-group-item span.day-monday   { background-color: var(--monday-bg) !important; color: var(--monday-text) !important; }
 
 .empty-state{ padding:40px; text-align:center; color:var(--muted); }
 

@@ -44,6 +44,14 @@ body{
   color:var(--muted);
 }
 
+.list-group-item.is-favorite {
+  border-top: 2px solid var(--bs-border-color) !important;
+  border-bottom: 2px solid var(--bs-border-color) !important;
+  border-left: 2px solid var(--bs-warning) !important;
+  border-right: 2px solid var(--bs-warning) !important;
+}
+
+
 .fav-btn:focus{ outline:2px solid rgba(45,212,191,0.15); border-radius:6px; }
 
 .empty-state{ padding:40px; text-align:center; color:var(--muted); }

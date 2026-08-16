@@ -51,19 +51,26 @@ body{
   border-right: 2px solid var(--bs-warning) !important;
 }
 
-.day-thursday { background-color: #2d4a3e !important; color: #ffffff !important; }
-.day-friday   { background-color: #1e5128 !important; color: #ffffff !important; }
-.day-saturday { background-color: #b85d19 !important; color: #ffffff !important; }
-.day-sunday   { background-color: #d4af37 !important; color: #1a1a1a !important; }
-.day-monday   { background-color: #4f5d75 !important; color: #ffffff !important; }
+/* 1. Base style for ALL day labels when INACTIVE (Transparent / Body text color) */
+.day-thursday, .day-friday, .day-saturday, .day-sunday, .day-monday {
+  background-color: transparent !important;
+  color: var(--bs-body-color) !important;
+  border-color: var(--bs-border-color) !important;
+}
 
-/* Dark Mode Adjustments (Slightly deeper/richer tones so they pop on dark backgrounds) */
-[data-bs-theme="dark"] .day-thursday { background-color: #1f332a !important; color: #a3e4d7 !important; border: 1px solid #2d4a3e; }
-[data-bs-theme="dark"] .day-friday   { background-color: #14361b !important; color: #abebc6 !important; border: 1px solid #1e5128; }
-[data-bs-theme="dark"] .day-saturday { background-color: #874412 !important; color: #f5cba7 !important; border: 1px solid #b85d19; }
-[data-bs-theme="dark"] .day-sunday   { background-color: #9a8122 !important; color: #f9e79f !important; border: 1px solid #d4af37; }
-[data-bs-theme="dark"] .day-monday   { background-color: #384253 !important; color: #d6dbdf !important; border: 1px solid #4f5d75; }
+/* 2. Light Mode: When the radio button is CHECKED, apply the full Mountain & Valley colour */
+input#day-thursday:checked + label.day-thursday { background-color: #2d4a3e !important; color: #ffffff !important; border-color: #2d4a3e !important; }
+input#day-friday:checked + label.day-friday     { background-color: #1e5128 !important; color: #ffffff !important; border-color: #1e5128 !important; }
+input#day-saturday:checked + label.day-saturday { background-color: #b85d19 !important; color: #ffffff !important; border-color: #b85d19 !important; }
+input#day-sunday:checked + label.day-sunday     { background-color: #d4af37 !important; color: #1a1a1a !important; border-color: #d4af37 !important; }
+input#day-monday:checked + label.day-monday     { background-color: #4f5d75 !important; color: #ffffff !important; border-color: #4f5d75 !important; }
 
+/* 3. Dark Mode Adjustments for active states */
+[data-bs-theme="dark"] input#day-thursday:checked + label.day-thursday { background-color: #1f332a !important; color: #a3e4d7 !important; border-color: #2d4a3e !important; }
+[data-bs-theme="dark"] input#day-friday:checked + label.day-friday     { background-color: #14361b !important; color: #abebc6 !important; border-color: #1e5128 !important; }
+[data-bs-theme="dark"] input#day-saturday:checked + label.day-saturday { background-color: #874412 !important; color: #f5cba7 !important; border-color: #b85d19 !important; }
+[data-bs-theme="dark"] input#day-sunday:checked + label.day-sunday     { background-color: #9a8122 !important; color: #f9e79f !important; border-color: #d4af37 !important; }
+[data-bs-theme="dark"] input#day-monday:checked + label.day-monday     { background-color: #384253 !important; color: #d6dbdf !important; border-color: #4f5d75 !important; }
 
 .fav-btn:focus{ outline:2px solid rgba(45,212,191,0.15); border-radius:6px; }
 

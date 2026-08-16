@@ -1,4 +1,3 @@
-// --- 1. STATE MANAGEMENT ---
 let allActs = [];
 let currentDate = 'All'; // Initial state before dynamic render
 let currentStage = 'All';
@@ -57,16 +56,16 @@ async function fetchScheduleData() {
   try {
     const response = await fetch('./data/gm2026.json');
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    
+
     const rawClashfinderData = await response.json();
-    
+
     // Process Clashfinder structure into a flat array of acts
     allActs = parseClashfinderJSON(rawClashfinderData);
     updateFooterTimestamp(rawClashfinderData);
-    
+
     // Dynamically render day buttons and determine smart default day
     currentDate = renderDaySelector(allActs, currentDate);
-    
+
     populateStageDropdown();
     renderSchedule();
   } catch (err) {
@@ -133,29 +132,30 @@ function renderDaySelector(acts, currentSelectedDay = null) {
   const container = document.getElementById('day-selector-container');
   if (!container) return 'All';
 
-    uniqueDays.forEach(dayName => {
-    const capitalized = dayName.charAt(0).toUpperCase() + dayName.slice(1);
-    const shortLabel = capitalized.substring(0, 3);
-    const isChecked = activeDay.toLowerCase() === dayName ? 'checked' : '';
-    
-    // Get unique class name (e.g. day-thursday)
-    const dayClass = `day-${dayName.toLowerCase()}`;
+  const uniqueDays = [...new Set(acts.map(a => String(a.day || '').trim().toLowerCase()))]
+    .filter(day => day !== '')
+    .sort((a, b) => (dayOrder[a] || 99) - (dayOrder[b] || 99));
 
-    html += `
-      <input type="radio" class="btn-check" name="day-radio" id="day-${dayName}" value="${capitalized}" ${isChecked}>
-      <label class="btn btn-outline-secondary btn-sm ${dayClass} fw-bold" for="day-${dayName}">${shortLabel}</label>
-    `;
-  });
+  if (uniqueDays.length === 0) return 'All';
 
+  const activeDay = currentSelectedDay || getDefaultDate(uniqueDays, acts);
+
+  let html = `
+    <input type="radio" class="btn-check" name="day-radio" id="day-all" value="All" ${activeDay === 'All' ? 'checked' : ''}>
+    <label class="btn btn-outline-success btn-sm" for="day-all">All</label>
+  `;
 
   uniqueDays.forEach(dayName => {
     const capitalized = dayName.charAt(0).toUpperCase() + dayName.slice(1);
     const shortLabel = capitalized.substring(0, 3);
     const isChecked = activeDay.toLowerCase() === dayName ? 'checked' : '';
 
+    // Get unique class name (e.g. day-thursday)
+    const dayClass = `day-${dayName.toLowerCase()}`;
+
     html += `
       <input type="radio" class="btn-check" name="day-radio" id="day-${dayName}" value="${capitalized}" ${isChecked}>
-      <label class="btn btn-outline-success btn-sm" for="day-${dayName}">${shortLabel}</label>
+      <label class="btn btn-outline-secondary btn-sm ${dayClass} fw-bold" for="day-${dayName}">${shortLabel}</label>
     `;
   });
 
@@ -179,7 +179,7 @@ function getDefaultDate(availableDays, acts) {
 
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
-  
+
   for (const act of acts) {
     if (act.rawStart && act.rawStart.startsWith(todayStr)) {
       const actDayLower = String(act.day || '').trim().toLowerCase();
@@ -202,7 +202,7 @@ function renderSchedule() {
     const matchesSearch = act.act.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFav = !showFavoritesOnly || favorites.has(actId);
     const matchesSeen = !showSeenOnly || seenActs.has(actId);
-    
+
     return matchesDay && matchesStage && matchesSearch && matchesFav && matchesSeen;
   });
 
@@ -228,7 +228,7 @@ function renderSchedule() {
     return;
   }
 
-    actListEl.innerHTML = filtered.map(act => {
+  actListEl.innerHTML = filtered.map(act => {
     const actId = getActId(act);
     const isFav = favorites.has(actId);
     const isSeen = seenActs.has(actId);
@@ -244,7 +244,7 @@ function renderSchedule() {
       <div class="list-group-item d-flex align-items-center px-1 py-2 gap-2 ${isSeen ? 'bg-success-subtle' : ''} ${isFav ? 'is-favorite rounded' : 'border border-bottom rounded'}">
 
        <div class="flex-shrink-0 d-flex flex-column align-items-start gap-1">
-        <span class="badge ${dayClass} ${isSeen ? 'border border-1 border-secondary rounded bg-primary-subtle' : 'bg-primary-subtle'} text-primary fw-bold px-2 py-1 w-100">
+        <span class="badge ${dayClass} fw-bold px-2 py-1 w-100">
           ${escapeHtml(shortDay)}
         </span>
         
@@ -279,7 +279,6 @@ function renderSchedule() {
       </div>
     `;
   }).join('');
-
 }
 
 // Parse HH:MM into pure total minutes from midnight
@@ -377,11 +376,11 @@ function setupEventListeners() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const rawClashfinderData = await response.json();
-        
+
         // Check if the data has actually changed by comparing timestamps
         const modifiedTime = rawClashfinderData?.lastEdit || rawClashfinderData?.modified;
         const previousModTime = localStorage.getItem(STORAGE_KEY_LAST_MOD);
-        
+
         const hasChanged = previousModTime !== modifiedTime;
 
         // Update footer timestamp normally (so the Last Updated label always stays accurate)
@@ -406,8 +405,6 @@ function setupEventListeners() {
       }
     });
   }
-
-
 }
 
 function populateStageDropdown() {
@@ -470,7 +467,6 @@ function populateStageDropdown() {
   });
 }
 
-
 function escapeHtml(str) {
   const s = String(str == null ? '' : str);
   return s.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
@@ -514,12 +510,12 @@ function updateFooterTimestamp(data) {
       const weekday = d.toLocaleDateString('en-US', { weekday: 'short' }); 
       const dayNum = d.getDate(); 
       const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }); 
-      
+
       const formattedDate = `${weekday} ${dayNum}${getOrdinalSuffix(dayNum)} ${time}`;
-      
+
       // Save it locally for the comparison logic in the refresh button
       localStorage.setItem(STORAGE_KEY_LAST_MOD, modifiedTime);
-      
+
       // Always show the last modified date label cleanly
       lastUpdatedEl.innerHTML = `<span>Last updated:<br/>${formattedDate}</span>`;
       return;

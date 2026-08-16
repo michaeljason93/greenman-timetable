@@ -33,6 +33,18 @@ const dayOrder = {
   'monday': 5
 };
 
+const stageEmojis = {
+    'mountain stage': '⛰️',
+    'far out': '🎪',
+    'walled garden': '🌿',
+    'chai wallahs': '☕',
+    'rising': '🌅',
+    'round the twist': '🌀',
+    'wishbone': '🦴',
+    'babbling tongues': '🗣️',
+    'cinedrome': '🎬'
+  };
+
 // --- 3. INIT & DATA FETCH ---
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
@@ -214,16 +226,18 @@ function renderSchedule() {
     return;
   }
 
-  actListEl.innerHTML = filtered.map(act => {
+    actListEl.innerHTML = filtered.map(act => {
     const actId = getActId(act);
     const isFav = favorites.has(actId);
     const isSeen = seenActs.has(actId);
     const shortDay = (act.day || '').substring(0, 3);
 
+    const stageLower = String(act.stage || '').toLowerCase().trim();
+    const stageEmoji = stageEmojis[stageLower] || '🎵';
+
     return `
       <div class="list-group-item d-flex align-items-center px-1 py-2 gap-2 ${isSeen ? 'bg-success-subtle' : ''} ${isFav ? 'is-favorite rounded' : 'border border-bottom rounded'}">
 
-        
        <div class="flex-shrink-0 d-flex flex-column align-items-start gap-1">
         <span class="badge ${isSeen ? 'border border-1 border-secondary rounded bg-primary-subtle' : 'bg-primary-subtle'} text-primary fw-bold px-2 py-1 w-100">
           ${escapeHtml(shortDay)}
@@ -238,7 +252,7 @@ function renderSchedule() {
           <div class="h6 mb-0 text-wrap lh-sm fw-bold text-break">
             ${escapeHtml(act.act)}
           </div>
-          <div class="small text-muted text-wrap mt-1">${escapeHtml(act.stage)}</div>
+          <div class="small text-muted text-wrap mt-1">${stageEmoji} ${escapeHtml(act.stage)}</div>
         </div>
         
         <div class="d-flex gap-1 align-items-center flex-shrink-0">
@@ -260,6 +274,7 @@ function renderSchedule() {
       </div>
     `;
   }).join('');
+
 }
 
 // Parse HH:MM into pure total minutes from midnight
@@ -402,18 +417,6 @@ function populateStageDropdown() {
     'babbling tongues',
     'cinedrome'
   ];
-
-  const stageEmojis = {
-    'mountain stage': '⛰️',
-    'far out': '🎪',
-    'walled garden': '🌿',
-    'chai wallahs': '☕',
-    'rising': '🌅',
-    'round the twist': '🌀',
-    'wishbone': '🦴',
-    'babbling tongues': '🗣️',
-    'cinedrome': '🎬'
-  };
 
   const rawStages = [...new Set(allActs.map(a => a.stage))];
   const sortedStages = rawStages.sort((a, b) => {

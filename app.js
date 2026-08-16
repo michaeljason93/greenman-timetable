@@ -403,6 +403,18 @@ function populateStageDropdown() {
     'cinedrome'
   ];
 
+  const stageEmojis = {
+    'mountain stage': '⛰️',
+    'far out': '🎪',
+    'walled garden': '🌿',
+    'chai wallahs': '☕',
+    'rising': '🌅',
+    'round the twist': '🌀',
+    'wishbone': '🦴',
+    'babbling tongues': '🗣️',
+    'cinedrome': '🎬'
+  };
+
   const rawStages = [...new Set(allActs.map(a => a.stage))];
   const sortedStages = rawStages.sort((a, b) => {
     const indexA = customOrder.indexOf(String(a).toLowerCase().trim());
@@ -416,17 +428,21 @@ function populateStageDropdown() {
   let html = `
     <div class="d-flex flex-wrap gap-1 w-100">
       <input type="radio" class="btn-check" name="stage-radio" id="stage-all" value="All" ${checkedAll}>
-      <label class="btn btn-outline-primary btn-sm flex-fill text-nowrap text-center" for="stage-all">All</label>
+      <label class="btn btn-outline-primary btn-sm flex-fill text-nowrap text-center" for="stage-all">🌐 All</label>
   `;
 
   stages.forEach(stage => {
     const slug = String(stage).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
     const id = `stage-${slug}`;
     const checked = stage === currentStage ? 'checked' : '';
-    
+
+    // Look up the matching emoji, falling back to a music note 🎵 if a stage isn't found
+    const stageLower = String(stage).toLowerCase().trim();
+    const emoji = stageEmojis[stageLower] || '🎵';
+
     html += `
       <input type="radio" class="btn-check" name="stage-radio" id="${id}" value="${stage}" ${checked}>
-      <label class="btn btn-outline-primary btn-sm flex-fill text-nowrap text-center" for="${id}">${stage}</label>
+      <label class="btn btn-outline-primary btn-sm flex-fill text-nowrap text-center" for="${id}">${emoji} ${stage}</label>
     `;
   });
 
@@ -445,6 +461,7 @@ function populateStageDropdown() {
     });
   });
 }
+
 
 function escapeHtml(str) {
   const s = String(str == null ? '' : str);

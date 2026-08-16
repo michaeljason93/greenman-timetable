@@ -94,13 +94,11 @@ function parseClashfinderJSON(cfData) {
       const startTime = startDateTime.split(' ')[1] || startDateTime;
       const endTime = endDateTime.split(' ')[1] || endDateTime;
 
-      // Construct a unique ID for local storage tracking
-      const actId = event.mbId 
-        ? `mbid-${event.mbId}` 
-        : `${dayName}-${stageName}-${startTime}-${actName}`
-            .toLowerCase()
-            .replace(/\s+/g, '-')
-            .replace(/[^a-z0-9\-]/g, '');
+      const cleanShort = String(event.short || actName)
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
+
+      const actId = `act-${cleanShort}`;
 
       acts.push({
         id: actId,

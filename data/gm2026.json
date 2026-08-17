@@ -1,8 +1,8 @@
 {
 	"copyright":"Licensed under a Creative Commons Attribution-NonCommercial 3.0 License https://creativecommons.org/licenses/by-nc/3.0/. Free for non-commercial use. Contact halvin@clashfinder.com for other uses.",
 	"created":"2026-03-02 09:22",
-	"lastEdit":"2026-08-17 12:02",
-	"modified":"2026-08-17 12:02",
+	"lastEdit":"2026-08-17 16:04",
+	"modified":"2026-08-17 16:04",
 	"name":"Green Man Festival 2026",
 	"id":"gm2026",
 	"url":"https://clashfinder.com/s/gm2026/",
@@ -136,7 +136,7 @@
 				{"name":"Compost Compost Compost","short":"compos(1)","start":"2026-08-21 14:50","end":"2026-08-21 15:35"},
 				{"name":"Dorothy","short":"doroth(1)","start":"2026-08-21 16:30","end":"2026-08-21 17:20"},
 				{"name":"The Dogs","short":"dogs(1)","start":"2026-08-21 18:20","end":"2026-08-21 19:05"},
-				{"name":"The Healing Power Of Horses","short":"healin(1)","start":"2026-08-21 20:15","end":"2026-08-21 21:00","mbId":"82ff1ecb-08fd-4884-ae25-cb59e81f43f4"},
+				{"name":"The Healing Power Of Horses","short":"healin(1)","start":"2026-08-21 20:15","end":"2026-08-21 21:00","mbId":"82ff1ecb-08fd-4884-ae25-cb59e81f43f4","mbid":"82ff1ecb-08fd-4884-ae25-cb59e81f43f4"},
 				{"name":"Pollyfromthedirt","short":"pollyf(1)","start":"2026-08-21 22:15","end":"2026-08-21 23:00"},
 				{"name":"Cyn Cwsg","short":"cyncws(1)","start":"2026-08-22 11:45","end":"2026-08-22 12:15"},
 				{"name":"Big Long Sun","short":"biglon(1)","start":"2026-08-22 13:15","end":"2026-08-22 14:00"},
@@ -377,6 +377,30 @@
 				{"name":"Traitorz - Murder on the Dancefloor","short":"traito(1)","start":"2026-08-23 23:10","end":"2026-08-23 23:40"},
 				{"name":"An Evening with Mad Donna","short":"aneven(1)","start":"2026-08-24 00:30","end":"2026-08-24 01:45"},
 				{"name":"Glitterball","short":"glitte(1)","start":"2026-08-24 01:45","end":"2026-08-24 03:00"}
+			]
+		},
+		{
+			"name":"Rough Trade",
+			"events":[
+				{"name":"Mogwai (signing)","short":"mogwai1(1)","start":"2026-08-20 15:30","end":"2026-08-20 16:00"},
+				{"name":"Shame (signing)","short":"shames(1)","start":"2026-08-21 13:30","end":"2026-08-21 14:00"},
+				{"name":"Lime Garden (signing)","short":"limega1(1)","start":"2026-08-21 14:00","end":"2026-08-21 14:30"},
+				{"name":"Little Grandad (signing)","short":"little2(1)","start":"2026-08-21 15:00","end":"2026-08-21 15:30"},
+				{"name":"My New Band Believe (signing)","short":"mynewb1(1)","start":"2026-08-21 15:30","end":"2026-08-21 16:00"},
+				{"name":"Westside Cowboy (signing)","short":"westsi1(1)","start":"2026-08-21 17:00","end":"2026-08-21 17:30"},
+				{"name":"Avalon Emerson (signing)","short":"avalon1(1)","start":"2026-08-21 17:30","end":"2026-08-21 18:00"},
+				{"name":"Pigeon (signing)","short":"pigeon1(1)","start":"2026-08-22 12:30","end":"2026-08-22 13:00"},
+				{"name":"Tamikrest (signing)","short":"tamikr1(1)","start":"2026-08-22 13:30","end":"2026-08-22 14:00"},
+				{"name":"Nation Of Language (signing)","short":"nation1(1)","start":"2026-08-22 14:00","end":"2026-08-22 14:30"},
+				{"name":"big long sun (signing)","short":"biglon1(1)","start":"2026-08-22 14:30","end":"2026-08-22 15:00"},
+				{"name":"Opus Kink (signing)","short":"opuski1(1)","start":"2026-08-22 15:00","end":"2026-08-22 15:30"},
+				{"name":"Ulrika Spacek (signing)","short":"ulrika1(1)","start":"2026-08-22 16:30","end":"2026-08-22 17:00"},
+				{"name":"Daniel Avery (signing)","short":"daniel2(1)","start":"2026-08-22 17:00","end":"2026-08-22 17:30"},
+				{"name":"Ora Cogan (signing)","short":"oracog1(1)","start":"2026-08-22 19:00","end":"2026-08-22 19:30"},
+				{"name":"Dame Area (signing)","short":"damear1(1)","start":"2026-08-23 14:30","end":"2026-08-23 15:00"},
+				{"name":"Zach Thompson (signing)","short":"zachth1(1)","start":"2026-08-23 15:00","end":"2026-08-23 15:30"},
+				{"name":"Lael Neale (signing)","short":"laelne1(1)","start":"2026-08-23 17:00","end":"2026-08-23 17:30"},
+				{"name":"Snuggle (signing)","short":"snuggl1(1)","start":"2026-08-23 18:30","end":"2026-08-23 19:00"}
 			]
 		}
 	]

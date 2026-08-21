@@ -1,8 +1,8 @@
 {
 	"copyright":"Licensed under a Creative Commons Attribution-NonCommercial 3.0 License https://creativecommons.org/licenses/by-nc/3.0/. Free for non-commercial use. Contact halvin@clashfinder.com for other uses.",
 	"created":"2026-03-02 09:22",
-	"lastEdit":"2026-08-19 15:55",
-	"modified":"2026-08-19 15:55",
+	"lastEdit":"2026-08-20 15:12",
+	"modified":"2026-08-20 15:12",
 	"name":"Green Man Festival 2026",
 	"id":"gm2026",
 	"url":"https://clashfinder.com/s/gm2026/",
@@ -43,7 +43,7 @@
 		{
 			"name":"Far Out",
 			"events":[
-				{"name":"Userband","short":"userba(1)","start":"2026-08-20 16:45","end":"2026-08-20 17:30","mbId":"d0381fbb-48ec-426a-a01d-e5663691139b"},
+				{"name":"Userband","short":"userba(1)","start":"2026-08-20 16:45","end":"2026-08-20 17:30","mbId":"d0381fbb-48ec-426a-a01d-e5663691139b","mbid":"d0381fbb-48ec-426a-a01d-e5663691139b"},
 				{"name":"Madra Salach","short":"madras(1)","start":"2026-08-20 18:00","end":"2026-08-20 18:45"},
 				{"name":"Friko","short":"friko(1)","start":"2026-08-20 19:30","end":"2026-08-20 20:15"},
 				{"name":"Lime Garden","short":"limega(1)","start":"2026-08-20 20:45","end":"2026-08-20 21:40"},
@@ -109,7 +109,7 @@
 				{"name":"Sir Richard Bishop","short":"sirric(1)","start":"2026-08-22 16:10","end":"2026-08-22 17:10"},
 				{"name":"Ora Cogan","short":"oracog(1)","start":"2026-08-22 17:40","end":"2026-08-22 18:40"},
 				{"name":"Joanne Robertson","short":"joanne(1)","start":"2026-08-22 19:10","end":"2026-08-22 20:10"},
-				{"name":"Insecure Men","short":"insecu(1)","start":"2026-08-22 20:40","end":"2026-08-22 21:40"},
+				{"name":"Mary In The Junkyard","short":"maryin(1)","start":"2026-08-22 20:40","end":"2026-08-22 21:40"},
 				{"name":"Haley Heynderickx","short":"haleyh(1)","start":"2026-08-22 22:10","end":"2026-08-22 23:10"},
 				{"name":"Sorry","short":"sorry(1)","start":"2026-08-22 23:40","end":"2026-08-23 00:40"},
 				{"name":"Dame Area","short":"damear(1)","start":"2026-08-23 01:10","end":"2026-08-23 02:10"},
